@@ -41,6 +41,13 @@ Order.class_eval do
         sca.destroy
       end
     else
+      if Spree::Config[:use_store_credit_minimum] and item_total < Spree::Config[:use_store_credit_minimum].to_f
+        errors.add(:amount, "of order is less than the minimum allowed (#{Spree::Config[:use_store_credit_minimum].to_f}) to use store credit")
+        store_credits.destroy_all
+        update!
+        return false
+      end
+
       if sca = adjustments.detect {|adjustment| adjustment.source_type == "StoreCredit" }
         sca.update_attributes({:amount => -(@store_credit_amount)})
       else
