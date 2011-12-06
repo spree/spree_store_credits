@@ -10,6 +10,7 @@ module SpreeStoreCredits
       end
       AppConfiguration.class_eval do
         preference :use_store_credit_minimum, :float, :default => 30.0
+        preference :store_credit_expire_days, :number, :default => 0
       end
     end
 
