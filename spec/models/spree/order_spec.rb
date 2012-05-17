@@ -8,7 +8,7 @@ module Spree
 
     before do
       Spree::Config.set :use_store_credit_minimum => nil
-      order.stub(:user => user, :total => 50 ) 
+      order.stub(:user => user, :total => 50 )
     end
 
     context "process_store_credit" do
@@ -202,18 +202,32 @@ module Spree
 
     context "when minimum item total is set" do
       before { order.stub(:item_total => 50, :store_credit_amount => 25) }
-      it "should be invalid when item total is less than limit" do
-        Spree::Config.set :use_store_credit_minimum => 100
-        order.valid?.should be_false
-        order.errors.should_not be_nil
+
+      context "when item total is less than limit" do
+        before { Spree::Config.set :use_store_credit_minimum => 100 }
+
+        it "should be invalid" do
+          order.valid?.should be_false
+          order.errors.should_not be_nil
+        end
+
+        it "should be valid when store_credit_amount is 0" do
+          order.stub(:item_total => 50, :store_credit_amount => 0)
+          order.valid?.should be_true
+          order.errors.count.should == 0
+        end
+
       end
 
-      it "should be valid when item total is greater than limit" do
-        Spree::Config.set :use_store_credit_minimum => 10
-        order.valid?.should be_true
-        order.errors.count.should == 0
-      end
+      describe "when item total is greater than limit" do
+        before { Spree::Config.set :use_store_credit_minimum => 10 }
 
+        it "should be valid when item total is greater than limit" do
+          order.valid?.should be_true
+          order.errors.count.should == 0
+        end
+
+      end
 
     end
   end
