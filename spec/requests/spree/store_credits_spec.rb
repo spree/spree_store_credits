@@ -62,6 +62,7 @@ module Spree
 
         Spree::Config.set :use_store_credit_minimum => 1
         click_button "Save and Continue"
+        page.should have_content("-$19.99")
         page.should have_content("Your order has been processed successfully")
         Spree::Order.count.should == 1
       end
@@ -127,15 +128,49 @@ module Spree
         check "order_use_billing"
         click_button "Save and Continue"
         click_button "Save and Continue"
-        save_and_open_page
-        fill_in "order_store_credit_amount", :with => "10"
 
+        fill_in "order_store_credit_amount", :with => "10"
         click_button "Save and Continue"
-        save_and_open_page
+
+        page.should have_content("-$10.00")
         page.should have_content("Your order has been processed successfully")
         Spree::Order.count.should == 1
       end
 
+      it "should allow even when admin is giving store credits", :js => true do
+        sign_in_as! user = Factory(:admin_user)
+        visit spree.new_admin_user_store_credit_path(user)
+        fill_in "Amount", :with => 10
+        fill_in "Reason", :with => "Gift"
+
+        click_button "Create"
+
+        Spree::Config.set :use_store_credit_minimum => 10
+
+        visit spree.product_path(@product)
+
+        click_button "Add To Cart"
+        click_link "Checkout"
+
+        str_addr = "bill_address"
+        select "United States", :from => "order_#{str_addr}_attributes_country_id"
+        ['firstname', 'lastname', 'address1', 'city', 'zipcode', 'phone'].each do |field|
+          fill_in "order_#{str_addr}_attributes_#{field}", :with => "#{address.send(field)}"
+        end
+
+        select "#{address.state.name}", :from => "order_#{str_addr}_attributes_state_id"
+        check "order_use_billing"
+        click_button "Save and Continue"
+        click_button "Save and Continue"
+        fill_in "order_store_credit_amount", :with => "10"
+
+        debugger
+        click_button "Save and Continue"
+        save_and_open_page
+        page.should have_content("-$10.00")
+        page.should have_content("Your order has been processed successfully")
+        Spree::Order.count.should == 1
+      end
     end
   end
 end
