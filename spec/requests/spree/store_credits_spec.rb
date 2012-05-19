@@ -164,9 +164,7 @@ module Spree
         click_button "Save and Continue"
         fill_in "order_store_credit_amount", :with => "10"
 
-        debugger
         click_button "Save and Continue"
-        save_and_open_page
         page.should have_content("-$10.00")
         page.should have_content("Your order has been processed successfully")
         Spree::Order.count.should == 1
