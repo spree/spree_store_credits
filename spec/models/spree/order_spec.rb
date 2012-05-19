@@ -179,6 +179,7 @@ module Spree
 
     context "process_payments!" do
       it "should return false when total is greater than zero and payment is nil" do
+        order.stub(:payment => nil)
         order.process_payments!.should be_false
       end
 
