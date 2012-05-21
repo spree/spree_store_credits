@@ -12,7 +12,7 @@ module Spree
     validates_with StoreCreditMinimumValidator
 
     def store_credit_amount
-      adjustments.store_credits.sum(:amount).abs
+      adjustments.store_credits.sum(:amount).abs.to_f
     end
 
 
