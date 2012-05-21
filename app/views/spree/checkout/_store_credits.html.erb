@@ -5,6 +5,6 @@
 </p>
 <p>
   <label><%= t('enter_desired_amount_of_store_credit') %></label><br />
-  <%= form.text_field :store_credit_amount, :value => number_with_precision(form.object.store_credit_amount, :strip_insignificant_zeros => true), :size => 19 %>
+  <%= form.text_field :store_credit_amount, :value => number_with_precision(form.object.store_credit_amount.to_f, :strip_insignificant_zeros => true), :size => 19 %>
 </p>
 <% end %>
