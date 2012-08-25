@@ -1,5 +1,5 @@
 module Spree
-  class Promotion::Actions::GiveStoreCredit < PromotionAction
+  class Promotion::Actions::GiveStoreCredit < Spree::PromotionAction
     preference :amount, :decimal, :default => 0.0
 
     def perform(options = {})
