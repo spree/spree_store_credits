@@ -35,16 +35,16 @@ module Spree
       @store_credit_amount = BigDecimal.new(@store_credit_amount.to_s).round(2)
 
       # store credit can't be greater than order total (not including existing credit), or the user's available credit
-      @store_credit_amount = [@store_credit_amount, user.store_credits_total, (total + store_credit_amount.abs)].min
+      @store_credit_amount = [@store_credit_amount, user.spree_user.store_credits_total, (total + store_credit_amount.abs)].min
 
       if @store_credit_amount <= 0
         adjustments.store_credits.destroy_all
       else
-        if sca = adjustments.store_credits.first
+        if sca = adjustments.store_credits.first 
           sca.update_attributes({:amount => -(@store_credit_amount)})
         else
           # create adjustment off association to prevent reload
-          sca = adjustments.store_credits.create(:label => I18n.t(:store_credit) , :amount => -(@store_credit_amount))
+          self.adjustments << adjustments.store_credits.create(:label => I18n.t(:store_credit) , :amount => -(@store_credit_amount))
         end
       end
 
@@ -61,7 +61,7 @@ module Spree
       return unless completed?
       credit_used = self.store_credit_amount
 
-      user.store_credits.each do |store_credit|
+      user.spree_user.store_credits.each do |store_credit|
         break if credit_used == 0
         if store_credit.remaining_amount > 0
           if store_credit.remaining_amount > credit_used
@@ -80,7 +80,7 @@ module Spree
     # ensure that user has sufficient credits to cover adjustments
     #
     def ensure_sufficient_credit
-      if user.store_credits_total < store_credit_amount
+      if user.spree_user.store_credits_total < store_credit_amount
         # user's credit does not cover all adjustments.
         adjustments.store_credits.destroy_all
 
