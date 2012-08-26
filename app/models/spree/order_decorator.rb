@@ -35,7 +35,7 @@ module Spree
       @store_credit_amount = BigDecimal.new(@store_credit_amount.to_s).round(2)
 
       # store credit can't be greater than order total (not including existing credit), or the user's available credit
-      @store_credit_amount = [@store_credit_amount, user.spree_user.store_credits_total, (total + store_credit_amount.abs)].min
+      @store_credit_amount = [@store_credit_amount, user.spree_user.store_credits_total, (total + @store_credit_amount.abs)].min
 
       if @store_credit_amount <= 0
         adjustments.store_credits.destroy_all
