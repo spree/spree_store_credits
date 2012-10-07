@@ -1,2 +1,2 @@
 fr:
-  store_credit_maximum_amount: "Le montant de votre avoir doit être inférieur à ou égale %{amount}. Ceci est nécessaire afin que le paiment soit validé."
+  store_credit_maximum_amount: "Le montant de votre avoir doit être inférieur ou à égale %{amount}. Ceci est nécessaire afin que le paiement soit validé."
