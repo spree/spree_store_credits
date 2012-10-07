@@ -15,7 +15,17 @@ module Spree
       adjustments.store_credits.sum(:amount).abs.to_f
     end
 
+    def store_credit_maximum_amount
+      item_total - 0.01
+    end
 
+    def store_credit_maximum_usable_amount
+      if user.store_credits_total > 0
+        user.store_credits_total > store_credit_maximum_amount ? store_credit_maximum_amount : user.store_credits_total
+      else
+        0
+      end
+    end
     # override core process payments to force payment present
     # in case store credits were destroyed by ensure_sufficient_credit
     def process_payments!
