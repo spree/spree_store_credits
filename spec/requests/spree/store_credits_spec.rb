@@ -15,7 +15,7 @@ module Spree
       let!(:address) { FactoryGirl.create(:address, :state => Spree::State.first) }
 
       it "should give me a store credit when I register" do
-        Factory(:promotion_for_store_credits, :event_name => "spree.user.signup")
+        FactoryGirl.create(:promotion_for_store_credits, :event_name => "spree.user.signup")
 
         visit "/signup"
 
@@ -30,7 +30,7 @@ module Spree
 
       it "should not allow if minimum order is not reached", :js => true do
         Spree::Config.set :use_store_credit_minimum => 100
-        Factory(:promotion_for_store_credits, :event_name => "spree.user.signup")
+        FactoryGirl.create(:promotion_for_store_credits, :event_name => "spree.user.signup")
         visit "/signup"
 
         fill_in "Email", :with => "george@gmail.com"
@@ -69,7 +69,7 @@ module Spree
 
       it "should allow if not using store credit and minimum order is not reached", :js => true do
         Spree::Config.set :use_store_credit_minimum => 100
-        Factory(:promotion_for_store_credits, :event_name => "spree.user.signup")
+        FactoryGirl.create(:promotion_for_store_credits, :event_name => "spree.user.signup")
         visit "/signup"
 
         fill_in "Email", :with => "george@gmail.com"
@@ -103,9 +103,8 @@ module Spree
 
       it "should allow if using store credit and minimum order is not reached", :js => true do
         Spree::Config.set :use_store_credit_minimum => 10
-        Factory(:promotion_for_store_credits, :event_name => "spree.user.signup")
+        FactoryGirl.create(:promotion_for_store_credits, :event_name => "spree.user.signup")
         visit "/signup"
-
         fill_in "Email", :with => "george@gmail.com"
         fill_in "Password", :with => "qwerty"
         fill_in "Password Confirmation", :with => "qwerty"
@@ -138,7 +137,7 @@ module Spree
       end
 
       it "should allow even when admin is giving store credits", :js => true do
-        sign_in_as! user = Factory(:admin_user)
+        sign_in_as! user = FactoryGirl.create(:admin_user)
         visit spree.new_admin_user_store_credit_path(user)
         fill_in "Amount", :with => 10
         fill_in "Reason", :with => "Gift"
