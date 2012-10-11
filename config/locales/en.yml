@@ -10,6 +10,7 @@ en:
   orders_with_store_credit: "Orders with store credit"
   remaining_amount: "Remaining amount"
   store_credit: "Store Credit"
+  store_credit_maximum_amount: "The store credit amount should be less or equal to %{amount}. This is mandatory for the order to be confirmed."
   store_credits: "Store Credits"
   you_have_store_credit: "You have %{amount} of store credits"
   was_fully_used: "was fully used"
