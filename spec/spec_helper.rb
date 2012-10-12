@@ -32,6 +32,5 @@ RSpec.configure do |config|
   config.use_transactional_fixtures = true
 
   config.include Spree::Core::UrlHelpers
-  config.include Devise::TestHelpers, :type => :controller
   config.include Rack::Test::Methods, :type => :requests
 end

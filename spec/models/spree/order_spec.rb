@@ -2,7 +2,7 @@ require 'spec_helper'
 
 module Spree
   describe Order do
-    let(:user) { mock_model User, :email => 'spree@example.com', :store_credits_total => 45.00 }
+    let(:user) { mock_model LegacyUser, :email => 'spree@example.com', :store_credits_total => 45.00 }
     let(:line_item) { mock_model(LineItem, :variant => mock('variant'), :quantity => 5, :price => 10) }
     let(:order) { Order.create() }
 

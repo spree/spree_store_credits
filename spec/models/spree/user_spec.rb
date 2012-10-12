@@ -1,8 +1,8 @@
 require 'spec_helper'
 
 module Spree
-  describe User do
-    let(:user) { User.create(:email => "foo@bar.com", :password => "secret", :password_confirmation => "secret") }
+  describe LegacyUser do
+    let(:user) { Spree.user_class.create(:email => "foo@bar.com", :password => "secret", :password_confirmation => "secret") }
 
     context "store_credits_total" do
       before do
