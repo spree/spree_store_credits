@@ -63,10 +63,6 @@ Spree::Order.class_eval do
     payment.amount = total if payment
   end
 
-  # consume users store credit once the order has completed.
-  Spree::Order.state_machine.after_transition :to => :complete,  :do => :consume_users_credit
-
-
   def consume_users_credit
     return unless completed?
     credit_used = self.store_credit_amount
@@ -86,6 +82,8 @@ Spree::Order.class_eval do
     end
 
   end
+  # consume users store credit once the order has completed.
+  state_machine.after_transition :to => :complete,  :do => :consume_users_credit
 
   # ensure that user has sufficient credits to cover adjustments
   #

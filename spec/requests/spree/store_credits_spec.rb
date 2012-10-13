@@ -16,7 +16,6 @@ module Spree
 
       it "should give me a store credit when I register" do
         FactoryGirl.create(:promotion_for_store_credits, :event_name => "spree.user.signup")
-
         visit "/signup"
 
         fill_in "Email", :with => "paul@gmail.com"
@@ -29,7 +28,9 @@ module Spree
       end
 
       it "should not allow if minimum order is not reached", :js => true do
-        Spree::Config.set :use_store_credit_minimum => 100
+        reset_spree_preferences do |config|
+         config.use_store_credit_minimum = 100
+        end
         FactoryGirl.create(:promotion_for_store_credits, :event_name => "spree.user.signup")
         visit "/signup"
 
@@ -38,11 +39,11 @@ module Spree
         fill_in "Password Confirmation", :with => "qwerty"
         click_button "Create"
 
-        User.find_by_email("george@gmail.com").store_credits.size.should == 1
-
         visit spree.product_path(@product)
-
         click_button "Add To Cart"
+
+        # regression fix double giving store credits
+        User.find_by_email("george@gmail.com").store_credits(true).count.should == 1
         click_link "Checkout"
 
         str_addr = "bill_address"
@@ -55,29 +56,36 @@ module Spree
         check "order_use_billing"
         click_button "Save and Continue"
         click_button "Save and Continue"
+        page.should have_content("You have $1,234.56 of store credits")
         fill_in "order_store_credit_amount", :with => "50"
 
         click_button "Save and Continue"
         page.should have_content("Order's item total is less than the minimum allowed ($100.00) to use store credit")
 
-        Spree::Config.set :use_store_credit_minimum => 1
+        reset_spree_preferences do |config|
+          config.use_store_credit_minimum = 1
+        end
         click_button "Save and Continue"
-        page.should have_content("-$19.99")
+        # Store credits MAXIMUM => item_total - 0.01 in order to be valid ex : paypal orders
+        page.should have_content("$-19.98")
         page.should have_content("Your order has been processed successfully")
         Spree::Order.count.should == 1
       end
 
       it "should allow if not using store credit and minimum order is not reached", :js => true do
-        Spree::Config.set :use_store_credit_minimum => 100
+        reset_spree_preferences do |config|
+         config.use_store_credit_minimum = 100
+        end
+
         FactoryGirl.create(:promotion_for_store_credits, :event_name => "spree.user.signup")
         visit "/signup"
 
-        fill_in "Email", :with => "george@gmail.com"
+        fill_in "Email", :with => "patrick@gmail.com"
         fill_in "Password", :with => "qwerty"
         fill_in "Password Confirmation", :with => "qwerty"
         click_button "Create"
 
-        User.find_by_email("george@gmail.com").store_credits.size.should == 1
+        User.find_by_email("patrick@gmail.com").store_credits(true).count.should == 1
 
         visit spree.product_path(@product)
 
@@ -102,15 +110,17 @@ module Spree
       end
 
       it "should allow if using store credit and minimum order is not reached", :js => true do
-        Spree::Config.set :use_store_credit_minimum => 10
+        reset_spree_preferences do |config|
+          config.use_store_credit_minimum = 10
+        end
         FactoryGirl.create(:promotion_for_store_credits, :event_name => "spree.user.signup")
         visit "/signup"
-        fill_in "Email", :with => "george@gmail.com"
+        fill_in "Email", :with => "sam@gmail.com"
         fill_in "Password", :with => "qwerty"
         fill_in "Password Confirmation", :with => "qwerty"
         click_button "Create"
 
-        User.find_by_email("george@gmail.com").store_credits.size.should == 1
+        User.find_by_email("sam@gmail.com").store_credits(true).count.should == 1
 
         visit spree.product_path(@product)
 
@@ -131,7 +141,7 @@ module Spree
         fill_in "order_store_credit_amount", :with => "10"
         click_button "Save and Continue"
 
-        page.should have_content("-$10.00")
+        page.should have_content("$-10.00")
         page.should have_content("Your order has been processed successfully")
         Spree::Order.count.should == 1
       end
@@ -144,7 +154,9 @@ module Spree
 
         click_button "Create"
 
-        Spree::Config.set :use_store_credit_minimum => 10
+        reset_spree_preferences do |config|
+          config.use_store_credit_minimum = 10
+        end
 
         visit spree.product_path(@product)
 
@@ -164,10 +176,12 @@ module Spree
         fill_in "order_store_credit_amount", :with => "10"
 
         click_button "Save and Continue"
-        page.should have_content("-$10.00")
+        page.should have_content("$-10.00")
         page.should have_content("Your order has been processed successfully")
         Spree::Order.count.should == 1
       end
+
+      after(:each) { reset_spree_preferences }
     end
   end
 end
