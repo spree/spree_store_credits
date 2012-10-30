@@ -44,7 +44,7 @@ module Spree
 
         # regression fix double giving store credits
         User.find_by_email("george@gmail.com").store_credits(true).count.should == 1
-        click_link "Checkout"
+        click_button "Checkout"
 
         str_addr = "bill_address"
         select "United States", :from => "order_#{str_addr}_attributes_country_id"
@@ -90,7 +90,7 @@ module Spree
         visit spree.product_path(@product)
 
         click_button "Add To Cart"
-        click_link "Checkout"
+        click_button "Checkout"
 
         str_addr = "bill_address"
         select "United States", :from => "order_#{str_addr}_attributes_country_id"
@@ -125,7 +125,7 @@ module Spree
         visit spree.product_path(@product)
 
         click_button "Add To Cart"
-        click_link "Checkout"
+        click_button "Checkout"
 
         str_addr = "bill_address"
         select "United States", :from => "order_#{str_addr}_attributes_country_id"
@@ -161,7 +161,7 @@ module Spree
         visit spree.product_path(@product)
 
         click_button "Add To Cart"
-        click_link "Checkout"
+        click_button "Checkout"
 
         str_addr = "bill_address"
         select "United States", :from => "order_#{str_addr}_attributes_country_id"
