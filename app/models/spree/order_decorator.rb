@@ -64,7 +64,7 @@ Spree::Order.class_eval do
   end
 
   def consume_users_credit
-    return unless completed?
+    return if not completed? or user.nil?
     credit_used = self.store_credit_amount
 
     user.store_credits.each do |store_credit|

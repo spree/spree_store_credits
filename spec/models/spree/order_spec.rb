@@ -41,7 +41,7 @@ module Spree
       end
 
       it "should update order totals if credit is applied" do
-        order.should_receive(:update_totals)
+        order.should_receive(:update_totals).twice
         order.store_credit_amount = 5.0
         order.save
       end
@@ -142,6 +142,13 @@ module Spree
         new_order.state.should == 'complete'
       end
 
+      # regression
+      it 'should do nothing on guest checkout' do
+        order.stub!(:user => nil)
+        expect {
+          order.send(:consume_users_credit)
+        }.to_not raise_error
+      end
     end
 
 
