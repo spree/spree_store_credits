@@ -32,5 +32,6 @@ RSpec.configure do |config|
   config.use_transactional_fixtures = true
 
   config.include Spree::Core::UrlHelpers
+  config.include FactoryGirl::Syntax::Methods
   config.include Rack::Test::Methods, :type => :requests
 end
