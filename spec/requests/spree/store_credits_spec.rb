@@ -14,7 +14,8 @@ module Spree
       let!(:address) { FactoryGirl.create(:address, :state => Spree::State.first) }
 
       it "should give me a store credit when I register" do
-        FactoryGirl.create(:promotion_for_store_credits, :event_name => "spree.user.signup")
+        create(:promotion_for_store_credits, :event_name => "spree.user.signup", :created_at => 2.days.ago)
+
         visit "/signup"
 
         fill_in "Email", :with => "paul@gmail.com"
@@ -30,7 +31,7 @@ module Spree
         reset_spree_preferences do |config|
          config.use_store_credit_minimum = 100
         end
-        FactoryGirl.create(:promotion_for_store_credits, :event_name => "spree.user.signup")
+        create(:promotion_for_store_credits, :event_name => "spree.user.signup", :created_at => 2.days.ago)
         visit "/signup"
 
         fill_in "Email", :with => "george@gmail.com"
@@ -69,7 +70,7 @@ module Spree
         # Store credits MAXIMUM => item_total - 0.01 in order to be valid ex : paypal orders
         page.should have_content("$-19.98")
         page.should have_content("Your order has been processed successfully")
-        Spree::Order.count.should == 1
+        Spree::Order.count.should == 2 # 1 Purchased + 1 new empty cart order
       end
 
       it "should allow if not using store credit and minimum order is not reached", :js => true do
@@ -77,7 +78,7 @@ module Spree
          config.use_store_credit_minimum = 100
         end
 
-        FactoryGirl.create(:promotion_for_store_credits, :event_name => "spree.user.signup")
+        create(:promotion_for_store_credits, :event_name => "spree.user.signup", :created_at => 2.days.ago)
         visit "/signup"
 
         fill_in "Email", :with => "patrick@gmail.com"
@@ -106,14 +107,14 @@ module Spree
 
         click_button "Save and Continue"
         page.should have_content("Your order has been processed successfully")
-        Spree::Order.count.should == 1
+        Spree::Order.count.should == 2 # 1 Purchased + 1 new empty cart order
       end
 
       it "should allow if using store credit and minimum order is not reached", :js => true do
         reset_spree_preferences do |config|
           config.use_store_credit_minimum = 10
         end
-        FactoryGirl.create(:promotion_for_store_credits, :event_name => "spree.user.signup")
+        create(:promotion_for_store_credits, :event_name => "spree.user.signup", :created_at => 2.days.ago)
         visit "/signup"
         fill_in "Email", :with => "sam@gmail.com"
         fill_in "Password", :with => "qwerty"
@@ -143,7 +144,7 @@ module Spree
 
         page.should have_content("$-10.00")
         page.should have_content("Your order has been processed successfully")
-        Spree::Order.count.should == 1
+        Spree::Order.count.should == 2 # 1 Purchased + 1 new empty cart order
       end
 
       it "should allow even when admin is giving store credits", :js => true do
@@ -178,7 +179,7 @@ module Spree
         click_button "Save and Continue"
         page.should have_content("$-10.00")
         page.should have_content("Your order has been processed successfully")
-        Spree::Order.count.should == 1
+        Spree::Order.count.should == 2 # 1 Purchased + 1 new empty cart order
       end
 
       after(:each) { reset_spree_preferences }

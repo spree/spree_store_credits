@@ -17,8 +17,8 @@ Gem::Specification.new do |s|
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
   s.require_paths = ["lib"]
 
-  s.add_dependency 'spree_core', '1.3.0.rc1'
-  s.add_dependency 'spree_promo', '1.3.0.rc1'
+  s.add_dependency 'spree_core', '~> 1.3.0'
+  s.add_dependency 'spree_promo', '~> 1.3.0'
 
   s.add_development_dependency 'capybara', '1.0.1'
   s.add_development_dependency 'ffaker'
@@ -30,7 +30,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'debugger'
   s.add_development_dependency 'sass-rails'
   s.add_development_dependency 'coffee-rails'
-  s.add_development_dependency 'spree_sample', "1.3.0.rc1"
+  s.add_development_dependency 'spree_sample', "~> 1.3.0"
   s.add_development_dependency 'debugger'
 end
 
