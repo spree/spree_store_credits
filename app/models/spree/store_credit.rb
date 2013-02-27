@@ -7,5 +7,6 @@ module Spree
     validates :user, :presence => true
 
     belongs_to :user
+    attr_accessible :amount, :remaining_amount, :reason
   end
 end

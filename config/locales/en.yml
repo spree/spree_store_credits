@@ -15,3 +15,6 @@ en:
   was_fully_used: "was fully used"
   was_partially_used: "was partially used"
   cannot_edit_used: "Cannot be edited because it has been used"
+  errors:
+    messages:
+      store_credit_minimum_order_not_reach: "Order's item total is less than the minimum allowed (%{amount}) to use store credit."
