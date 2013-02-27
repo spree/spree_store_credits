@@ -7,8 +7,6 @@ group :development, :test do
     gem 'spree_promo', :path => '~/code/spree'
   else
     gem "spree_auth_devise", :git => 'git://github.com/spree/spree_auth_devise.git', :branch => '1-3-stable'
-    gem 'spree_core', :git => 'git://github.com/spree/spree.git', :branch => '1-3-stable'
-    gem 'spree_promo', :git => 'git://github.com/spree/spree.git', :branch => '1-3-stable'
   end
 end
 

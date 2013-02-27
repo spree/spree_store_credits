@@ -10,15 +10,6 @@ Spree::Order.class_eval do
 
   validates_with StoreCreditMinimumValidator
 
-  # Finalizes an in progress order after checkout is complete.
-  # Called after transition to complete state when payments will have been processed.
-  def finalize_with_consume_users_credit!
-    finalize_without_consume_users_credit!
-    # consume users store credit once the order has completed.
-    consume_users_credit
-  end
-  # alias_method_chain :finalize!, :consume_users_credit
-
   def store_credit_amount
     adjustments.store_credits.sum(:amount).abs
   end
@@ -42,6 +33,7 @@ Spree::Order.class_eval do
     item_total - 0.01
   end
 
+  # returns the maximum usable amount of store credits
   def store_credit_maximum_usable_amount
     if user.store_credits_total > 0
       user.store_credits_total > store_credit_maximum_amount ? store_credit_maximum_amount : user.store_credits_total
@@ -94,6 +86,8 @@ Spree::Order.class_eval do
       end
     end
   end
+  # consume users store credit once the order has completed.
+  state_machine.after_transition :to => :complete,  :do => :consume_users_credit
 
   # ensure that user has sufficient credits to cover adjustments
   #
