@@ -179,6 +179,11 @@ module Spree
         click_button "Save and Continue"
         page.should have_content("$-10.00")
         page.should have_content("Your order has been processed successfully")
+
+        # store credits should be consumed
+        visit spree.account_path
+
+        page.should_not have_content('Current store credit: $10.00')
         Spree::Order.count.should == 2 # 1 Purchased + 1 new empty cart order
       end
 

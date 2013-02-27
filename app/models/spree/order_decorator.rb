@@ -10,10 +10,18 @@ Spree::Order.class_eval do
 
   validates_with StoreCreditMinimumValidator
 
-  def store_credit_amount
-    adjustments.store_credits.sum(:amount).abs.to_f
+  # Finalizes an in progress order after checkout is complete.
+  # Called after transition to complete state when payments will have been processed.
+  def finalize_with_consume_users_credit!
+    finalize_without_consume_users_credit!
+    # consume users store credit once the order has completed.
+    consume_users_credit
   end
+  # alias_method_chain :finalize!, :consume_users_credit
 
+  def store_credit_amount
+    adjustments.store_credits.sum(:amount).abs
+  end
 
   # override core process payments to force payment present
   # in case store credits were destroyed by ensure_sufficient_credit
@@ -25,6 +33,11 @@ Spree::Order.class_eval do
     end
   end
 
+  def store_credit_amount
+    adjustments.store_credits.sum(:amount).abs.to_f
+  end
+
+  # in case of paypal payment, item_total cannot be 0
   def store_credit_maximum_amount
     item_total - 0.01
   end
@@ -64,7 +77,7 @@ Spree::Order.class_eval do
   end
 
   def consume_users_credit
-    return if not completed? or user.nil?
+    return unless completed? and user.present?
     credit_used = self.store_credit_amount
 
     user.store_credits.each do |store_credit|
@@ -80,10 +93,7 @@ Spree::Order.class_eval do
         end
       end
     end
-
   end
-  # consume users store credit once the order has completed.
-  state_machine.after_transition :to => :complete,  :do => :consume_users_credit
 
   # ensure that user has sufficient credits to cover adjustments
   #
