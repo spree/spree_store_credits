@@ -41,13 +41,13 @@ module Spree
       end
 
       it "should update order totals if credit is applied" do
-        order.should_receive(:update_totals)
+        order.should_receive(:update_totals).at_least(1).times
         order.store_credit_amount = 5.0
         order.save
       end
 
       it "should update payment amount if credit is applied" do
-        order.stub(:payment => mock('payment'))
+        order.stub(:payment => mock('payment', :payment_method => mock('payment_method', :payment_profiles_supported? => mock)))
         order.payment.should_receive(:amount=)
         order.store_credit_amount = 5.0
         order.save
