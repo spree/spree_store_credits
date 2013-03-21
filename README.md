@@ -31,13 +31,4 @@ Testing
 
 1. rake test_app
 
-2. Update spec/dummy/config/initializers/spree.rb to
-
-  Replace 
-    Spree.user_class = "Spree::LegacyUser"
-  With
-    Spree.user_class = "Spree::User"
-
-  Would love to hear a better fix for this...
-
-3. rspec
+2. rspec
