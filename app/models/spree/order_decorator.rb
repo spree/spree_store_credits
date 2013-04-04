@@ -95,4 +95,9 @@ Spree::Order.class_eval do
       update!
     end
   end
+
+  #add payment method for spree 1.3.3-beta compatibility
+  def payment
+    payments.first
+  end
 end
