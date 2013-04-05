@@ -12,23 +12,14 @@ Spree::Order.class_eval do
 
   # override core process payments to force payment present
   # in case store credits were destroyed by ensure_sufficient_credit
-  def process_payments!
+
+  spree_process_payments = instance_method(:process_payments!)
+
+  define_method(:process_payments!) do
     if total > 0 && payment.nil?
       false
     else
-      begin
-        pending_payments.each do |payment|
-          break if payment_total >= total
-
-          payment.process!
-
-          if payment.completed?
-            self.payment_total += payment.amount
-          end
-        end
-      rescue Core::GatewayError
-        !!Spree::Config[:allow_checkout_on_gateway_error]
-      end
+      spree_process_payments.bind(self).()
     end
   end
 
