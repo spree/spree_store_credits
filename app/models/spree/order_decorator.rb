@@ -16,7 +16,19 @@ Spree::Order.class_eval do
     if total > 0 && payment.nil?
       false
     else
-      ret = payments.each(&:process!)
+      begin
+        pending_payments.each do |payment|
+          break if payment_total >= total
+
+          payment.process!
+
+          if payment.completed?
+            self.payment_total += payment.amount
+          end
+        end
+      rescue Core::GatewayError
+        !!Spree::Config[:allow_checkout_on_gateway_error]
+      end
     end
   end
 
@@ -94,5 +106,10 @@ Spree::Order.class_eval do
 
       update!
     end
+  end
+
+  #add payment method for spree 1.3.3-beta compatibility
+  def payment
+    payments.first
   end
 end
