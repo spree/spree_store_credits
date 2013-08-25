@@ -1,5 +1,4 @@
 Spree::Order.class_eval do
-  attr_accessible :store_credit_amount, :remove_store_credits
   attr_accessor :store_credit_amount, :remove_store_credits
 
   # the check for user? below is to ensure we don't break the
@@ -54,7 +53,7 @@ Spree::Order.class_eval do
         sca.update_attributes({:amount => -(@store_credit_amount)})
       else
         # create adjustment off association to prevent reload
-        sca = adjustments.store_credits.create(:label => I18n.t(:store_credit) , :amount => -(@store_credit_amount))
+        sca = adjustments.store_credits.create(:label => Spree.t(:store_credit) , :amount => -(@store_credit_amount))
       end
     end
 
