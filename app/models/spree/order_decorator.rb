@@ -1,10 +1,6 @@
 Spree::Order.class_eval do
   attr_accessor :store_credit_amount, :remove_store_credits
 
-  # the check for user? below is to ensure we don't break the
-  # admin app when creating a new order from the admin console
-  # In that case, we create an order before assigning a user
-  before_save :process_store_credit, :if => "self.user.present? && @store_credit_amount"
   after_save :ensure_sufficient_credit, :if => "self.user.present? && !self.completed?"
 
   validates_with StoreCreditMinimumValidator
@@ -36,15 +32,12 @@ Spree::Order.class_eval do
     end
   end
 
-  private
-
   # credit or update store credit adjustment to correct value if amount specified
   #
   def process_store_credit
-    @store_credit_amount = BigDecimal.new(@store_credit_amount.to_s).round(2)
 
     # store credit can't be greater than order total (not including existing credit), or the user's available credit
-    @store_credit_amount = [@store_credit_amount, user.store_credits_total, (total + store_credit_amount.abs)].min
+    @store_credit_amount = [user.store_credits_total, (total + store_credit_amount.abs)].min
 
     if @store_credit_amount <= 0
       adjustments.store_credits.destroy_all
@@ -61,6 +54,8 @@ Spree::Order.class_eval do
     update_totals
     pending_payments.first.amount = total if pending_payments.first
   end
+
+  private
 
   def consume_users_credit
     return unless completed? and user.present?

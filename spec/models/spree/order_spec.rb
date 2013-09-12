@@ -17,14 +17,15 @@ module Spree
       end
 
       it "should create store credit adjustment when user has sufficient credit" do
-        order.store_credit_amount = 5.0
+        order.process_store_credit
         order.save
         order.adjustments.store_credits.size.should == 1
-        order.store_credit_amount.should == 5.0
+        order.store_credit_amount.should == 45.0
       end
 
       it "should only create adjustment with amount equal to users total credit" do
         order.store_credit_amount = 50.0
+        order.process_store_credit
         order.save
         order.store_credit_amount.should == 45.00
       end
@@ -32,13 +33,14 @@ module Spree
       it "should only create adjustment with amount equal to order total" do
         user.stub(:store_credits_total => 100.0)
         order.store_credit_amount = 90.0
+        order.process_store_credit
         order.save
         order.store_credit_amount.should == 50.00
       end
 
       it "should not create adjustment when user does not have any credit" do
         user.stub(:store_credits_total => 0.0)
-        order.store_credit_amount = 5.0
+        order.process_store_credit
         order.save
         order.adjustments.store_credits.size.should == 0
         order.store_credit_amount.should == 0.0
@@ -47,27 +49,25 @@ module Spree
       it "should update order totals if credit is applied" do
         pending
         order.should_receive(:update_totals).twice
-        order.store_credit_amount = 5.0
         order.save
       end
 
       it "should update payment amount if credit is applied" do
         order.stub_chain(:pending_payments, :first => double('payment', :payment_method => double('payment method', :payment_profiles_supported? => true)))
         order.pending_payments.first.should_receive(:amount=)
-        order.store_credit_amount = 5.0
+        order.process_store_credit
         order.save
       end
 
       it "should create negative adjustment" do
-        order.store_credit_amount = 5.0
+        order.process_store_credit
         order.save
-        order.adjustments[0].amount.should == -5.0
+        order.adjustments[0].amount.should == -45.0
       end
 
       it "should process credits if order total is already zero" do
         order.stub(:total => 0)
         order.store_credit_amount = 5.0
-        order.should_receive(:process_store_credit)
         order.save
         order.adjustments.store_credits.size.should == 0
         order.store_credit_amount.should == 0.0
@@ -76,22 +76,16 @@ module Spree
       context "with an existing adjustment" do
         before { order.adjustments.store_credits.create(:label => I18n.t(:store_credit) , :amount => -10) }
 
-        it "should decrease existing adjustment if specific amount is less than adjustment amount" do
-          order.store_credit_amount = 5.0
+        it "should change existing adjustment if specific amount differs from adjustment amount" do
+          order.process_store_credit
           order.save
           order.adjustments.store_credits.size.should == 1
-          order.store_credit_amount.should == 5.0
-        end
-
-        it "should increase existing adjustment if specified amount is greater than adjustment amount" do
-          order.store_credit_amount = 25.0
-          order.save
-          order.adjustments.store_credits.size.should == 1
-          order.store_credit_amount.should == 25.0
+          order.store_credit_amount.should == 45.0
         end
 
         it "should destroy the adjustment if specified amount is zero" do
-          order.store_credit_amount = 0.0
+          store_credit.update_column :remaining_amount, 0
+          order.process_store_credit
           order.save
           order.adjustments.store_credits.size.should == 0
           order.store_credit_amount.should == 0.0
@@ -99,7 +93,7 @@ module Spree
 
         it "should decrease existing adjustment when existing credit amount is equal to the order total" do
           order.stub(:total => 10)
-          order.store_credit_amount = 5.0
+          order.process_store_credit
           order.save
           order.adjustments.store_credits.size.should == 1
           order.store_credit_amount.should == 5.0
