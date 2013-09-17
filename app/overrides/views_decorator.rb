@@ -15,7 +15,7 @@ Deface::Override.new(
 Deface::Override.new(
   :virtual_path => "spree/checkout/_payment",
   :name => "store_credits_checkout_payment_step",
-  :insert_after => "[data-hook='checkout_payment_step']",
+  :insert_before => "[data-hook='checkout_payment_step']",
   :partial => "spree/checkout/store_credits",
   :disabled => false)
 
