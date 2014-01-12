@@ -28,6 +28,5 @@ module Spree
     def permitted_store_credit_attributes
       [:user_id, :amount, :reason, :remaining_amount]
     end
-
   end
 end

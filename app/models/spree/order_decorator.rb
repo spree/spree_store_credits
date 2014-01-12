@@ -4,8 +4,8 @@ Spree::Order.class_eval do
   # the check for user? below is to ensure we don't break the
   # admin app when creating a new order from the admin console
   # In that case, we create an order before assigning a user
-  before_save :process_store_credit, :if => "self.user.present? && @store_credit_amount"
-  after_save :ensure_sufficient_credit, :if => "self.user.present? && !self.completed?"
+  before_save :process_store_credit, if: Proc.new{|order| order.user.present? && order.store_credit_amount }
+  after_save :ensure_sufficient_credit, if: Proc.new{|order| order.user.present? && !order.completed? }
 
   validates_with StoreCreditMinimumValidator
 
@@ -30,7 +30,7 @@ Spree::Order.class_eval do
   # returns the maximum usable amount of store credits
   def store_credit_maximum_usable_amount
     if user.store_credits_total > 0
-      user.store_credits_total > store_credit_maximum_amount ? store_credit_maximum_amount : user.store_credits_total
+      [store_credit_maximum_amount, user.store_credits_total].min
     else
       0
     end
