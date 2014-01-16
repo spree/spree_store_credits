@@ -1,7 +1,7 @@
 module Spree
   class Admin::StoreCreditsController < Admin::ResourceController
-    before_filter :check_amounts, :only => [:edit, :update]
-    prepend_before_filter :set_remaining_amount, :only => [:create, :update]
+    before_filter :check_amounts, only: [:edit, :update]
+    prepend_before_filter :set_remaining_amount, only: [:create, :update]
 
     protected
       def permitted_resource_params

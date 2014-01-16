@@ -4,7 +4,7 @@ Spree::Order.class_eval do
   # the check for user? below is to ensure we don't break the
   # admin app when creating a new order from the admin console
   # In that case, we create an order before assigning a user
-  before_save :process_store_credit, if: Proc.new{|order| order.user.present? && order.store_credit_amount }
+  before_save :process_store_credit, if: Proc.new{|order| order.user.present? && !order.store_credit_amount.zero? }
   after_save :ensure_sufficient_credit, if: Proc.new{|order| order.user.present? && !order.completed? }
 
   validates_with StoreCreditMinimumValidator
@@ -19,7 +19,7 @@ Spree::Order.class_eval do
   alias_method_chain :process_payments!, :credits
 
   def store_credit_amount
-    adjustments.store_credits.sum(:amount).abs.to_f
+    @store_credit_amount || adjustments.store_credits.sum(:amount).abs.to_f
   end
 
   # in case of paypal payment, item_total cannot be 0
@@ -29,11 +29,7 @@ Spree::Order.class_eval do
 
   # returns the maximum usable amount of store credits
   def store_credit_maximum_usable_amount
-    if user.store_credits_total > 0
-      [store_credit_maximum_amount, user.store_credits_total].min
-    else
-      0
-    end
+    [store_credit_maximum_amount, [user.store_credits_total, 0].max].min
   end
 
   private
@@ -42,7 +38,6 @@ Spree::Order.class_eval do
   #
   def process_store_credit
     @store_credit_amount = BigDecimal.new(@store_credit_amount.to_s).round(2)
-
     # store credit can't be greater than order total (not including existing credit), or the user's available credit
     @store_credit_amount = [@store_credit_amount, user.store_credits_total, (total + store_credit_amount.abs)].min
 
