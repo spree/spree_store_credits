@@ -12,12 +12,12 @@ Deface::Override.new(
   :text => "&nbsp;<%= link_to_with_icon('add', t('add_store_credit'), new_admin_user_store_credit_url(user)) %>",
   :disabled => false)
 
-Deface::Override.new(
-  :virtual_path => "spree/checkout/_payment",
-  :name => "store_credits_checkout_payment_step",
-  :insert_after => "[data-hook='checkout_payment_step']",
-  :partial => "spree/checkout/store_credits",
-  :disabled => false)
+# Deface::Override.new(
+#   :virtual_path => "spree/checkout/_payment",
+#   :name => "store_credits_checkout_payment_step",
+#   :insert_before => "[data-hook='checkout_payment_step']",
+#   :partial => "spree/checkout/store_credits",
+#   :disabled => false)
 
 Deface::Override.new(
   :virtual_path => "spree/users/show",

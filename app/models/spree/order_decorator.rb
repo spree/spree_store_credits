@@ -68,27 +68,6 @@ Spree::Order.class_eval do
     pending_payments.first.amount = total if pending_payments.first
   end
 
-  def consume_users_credit
-    return unless completed? and user.present?
-    credit_used = self.store_credit_amount
-
-    user.store_credits.each do |store_credit|
-      break if credit_used == 0
-      if store_credit.remaining_amount > 0
-        if store_credit.remaining_amount > credit_used
-          store_credit.remaining_amount -= credit_used
-          store_credit.save
-          credit_used = 0
-        else
-          credit_used -= store_credit.remaining_amount
-          store_credit.update_attribute(:remaining_amount, 0)
-        end
-      end
-    end
-  end
-  # consume users store credit once the order has completed.
-  state_machine.after_transition :to => :complete,  :do => :consume_users_credit
-
   # ensure that user has sufficient credits to cover adjustments
   #
   def ensure_sufficient_credit
