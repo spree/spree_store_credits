@@ -7,7 +7,7 @@ if Spree.user_class
     end
 
     def store_credits_total
-      store_credits.sum(:remaining_amount)
+      store_credits.store.sum(:remaining_amount)
     end
   end
 end

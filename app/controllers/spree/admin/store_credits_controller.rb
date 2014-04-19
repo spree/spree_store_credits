@@ -1,5 +1,7 @@
 module Spree
   class Admin::StoreCreditsController < Admin::ResourceController
+    layout "store_credit_custom"
+    
     before_filter :check_amounts, :only => [:edit, :update]
     prepend_before_filter :set_remaining_amount, :only => [:create, :update]
 
@@ -26,7 +28,7 @@ module Spree
     end
 
     def permitted_store_credit_attributes
-      [:user_id, :amount, :reason, :remaining_amount]
+      [:user_id, :amount, :reason, :remaining_amount, :credit_type, :expires_at, :description, :minimum_order]
     end
 
   end

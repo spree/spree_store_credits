@@ -61,7 +61,7 @@ Spree::Order.class_eval do
     return unless completed? and user.present?
     credit_used = self.store_credit_amount
 
-    user.store_credits.each do |store_credit|
+    user.store_credits.store.each do |store_credit|
       break if credit_used == 0
       if store_credit.remaining_amount > 0
         if store_credit.remaining_amount > credit_used
