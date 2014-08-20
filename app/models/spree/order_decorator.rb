@@ -10,7 +10,7 @@ Spree::Order.class_eval do
   validates_with StoreCreditMinimumValidator
 
   def process_payments_with_credits!
-    if total > 0 && pending_payments.empty?
+    if total > 0 && unprocessed_payments.empty?
       false
     else
       process_payments_without_credits!
@@ -59,7 +59,7 @@ Spree::Order.class_eval do
 
     # recalc totals and ensure payment is set to new amount
     update_totals
-    pending_payments.first.amount = total if pending_payments.first
+    unprocessed_payments.first.amount = total if unprocessed_payments.first
   end
 
   def consume_users_credit
