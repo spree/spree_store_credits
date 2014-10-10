@@ -12,7 +12,7 @@ class StoreCreditMinimumValidatable
   validates_with StoreCreditMinimumValidator
 end
 
-describe StoreCreditMinimumValidator do
+RSpec.describe StoreCreditMinimumValidator do
   subject { StoreCreditMinimumValidatable.new }
 
   before do

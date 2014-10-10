@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Spree::Admin::StoreCreditsController do
+RSpec.describe Spree::Admin::StoreCreditsController, :type => :controller do
   stub_authorization!
 
   before do

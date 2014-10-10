@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe "Promotion for Store Credits" do
+RSpec.describe 'Promotion for Store Credits', type: :feature, inaccessible: true do
   let!(:country) { create(:country, :states_required => true) }
   let!(:state) { create(:state, :country => country) }
   let!(:shipping_method) { create(:shipping_method) }
@@ -9,7 +9,7 @@ describe "Promotion for Store Credits" do
   let!(:payment_method) { create(:credit_card_payment_method) }
   let!(:zone) { create(:zone) }
 
-  context "#new user" do
+  context '#new user' do
     let(:address) { create(:address, :state => Spree::State.first) }
 
     before do
@@ -20,7 +20,7 @@ describe "Promotion for Store Credits" do
       email = 'paul@gmail.com'
       setup_new_user_and_sign_up(email)
       new_user = Spree.user_class.find_by_email email
-      new_user.store_credits.size.should == 1
+      expect(new_user.store_credits.size).to eq(1)
     end
 
     it "should not allow the user to apply the store credit if minimum order amount is not reached", :js => true do
@@ -31,31 +31,31 @@ describe "Promotion for Store Credits" do
       setup_new_user_and_sign_up(email)
 
       # regression fix double giving store credits
-      Spree.user_class.find_by_email(email).store_credits(true).count.should == 1
+      expect(Spree.user_class.find_by_email(email).store_credits(true).count).to eq(1)
       click_button "Checkout"
 
       fill_in_address
       click_button "Save and Continue"
       click_button "Save and Continue"
-      page.should have_content("You have $1,234.56 of store credits")
+      expect(page).to have_content("You have $1,234.56 of store credits")
       fill_in "order_store_credit_amount", :with => "50"
 
       click_button "Save and Continue"
-      page.should have_content("Order's item total is less than the minimum allowed ($100.00) to use store credit")
+      expect(page).to have_content("Order's item total is less than the minimum allowed ($100.00) to use store credit")
 
       reset_spree_preferences do |config|
         config.use_store_credit_minimum = 1
       end
       click_button "Save and Continue"
       # Store credits MAXIMUM => item_total - 0.01 in order to be valid ex : paypal orders
-      page.should have_content("$-19.98")
-      page.should have_content("Your order has been processed successfully")
+      expect(page).to have_content("$-19.98")
+      expect(page).to have_content("Your order has been processed successfully")
       Spree::Order.count.should == 2 # 1 Purchased + 1 new empty cart order
 
 
       # store credits should be consumed
       visit spree.account_path
-      page.should have_content("Current store credit: $1,214.58")
+      expect(page).to have_content("Current store credit: $1,214.58")
 
     end
 
@@ -67,7 +67,7 @@ describe "Promotion for Store Credits" do
       email = 'patrick@gmail.com'
       setup_new_user_and_sign_up(email)
 
-      Spree.user_class.find_by_email(email).store_credits(true).count.should == 1
+      expect(Spree.user_class.find_by_email(email).store_credits(true).count).to eq(1)
 
       click_button "Checkout"
 
@@ -77,12 +77,12 @@ describe "Promotion for Store Credits" do
       fill_in "order_store_credit_amount", :with => "0"
 
       click_button "Save and Continue"
-      page.should have_content("Your order has been processed successfully")
+      expect(page).to have_content("Your order has been processed successfully")
       Spree::Order.count.should == 2 # 1 Purchased + 1 new empty cart order
 
       # store credits should be unchanged
       visit spree.account_path
-      page.should have_content("Current store credit: $1,234.56")
+      expect(page).to have_content("Current store credit: $1,234.56")
     end
 
     it "should allow using store credit if minimum order amount is reached", :js => true do
@@ -91,8 +91,8 @@ describe "Promotion for Store Credits" do
       end
       email = 'sam@gmail.com'
       setup_new_user_and_sign_up(email)
-      Spree.user_class.find_by_email(email).store_credits(true).count.should == 1
-
+      expect(Spree.user_class.find_by_email(email).store_credits(true).count).to eq(1)
+      
       click_button "Checkout"
 
       fill_in_address
@@ -102,13 +102,13 @@ describe "Promotion for Store Credits" do
       fill_in "order_store_credit_amount", :with => "10"
       click_button "Save and Continue"
 
-      page.should have_content("$-10.00")
-      page.should have_content("Your order has been processed successfully")
-      Spree::Order.count.should == 2 # 1 Purchased + 1 new empty cart order
+      expect(page).to have_content("$-10.00")
+      expect(page).to have_content("Your order has been processed successfully")
+      expect(Spree::Order.count).to eq(2) # 1 Purchased + 1 new empty cart order
 
       # store credits should be consumed
       visit spree.account_path
-      page.should have_content("Current store credit: $1,224.56")
+      expect(page).to have_content("Current store credit: $1,224.56")
     end
 
     it "should allow even when admin is giving store credits", :js => true do

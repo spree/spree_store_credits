@@ -89,7 +89,8 @@ Spree::Order.class_eval do
     if user.store_credits_total < store_credit_amount
       # user's credit does not cover all adjustments.
       adjustments.store_credits.destroy_all
-
+      update!
+      updater.update_payment_state
       update!
     end
   end
