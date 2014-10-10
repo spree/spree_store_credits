@@ -148,14 +148,14 @@ module Spree
         new_order = Order.new(user: user)
         allow(new_order).to receive_messages(:store_credit_amount => 55)
         new_order.state = :confirm
+        new_order.should_receive(:consume_users_credit).at_least(1).times
         new_order.next!
-        expect(new_order.state).to eq('complete')
-        expect(user.store_credits_total).to eq(100.00)
+        new_order.state.should == 'complete'
       end
 
       # regression
       it 'should do nothing on guest checkout' do
-        allow(order).to receive_messages(:user => nil)
+        order.stub(:user => nil)
         expect {
           order.send(:consume_users_credit)
         }.to_not raise_error
@@ -164,15 +164,18 @@ module Spree
 
 
     context "ensure_sufficient_credit" do
-      let!(:order) { create(:order_with_line_items, payment_state: 'paid', state: 'complete', store_credit_amount: 35, user: user)}
+      let(:order) { create(:completed_order_with_totals, store_credit_amount: 35, user: user)}
       let!(:payment) { create(:payment, order: order, amount: 40, state: 'completed')}
 
       before do
         order.adjustments.store_credits.create(label: I18n.t(:store_credit) , amount: -10, eligible: true)
         order.update!
+        order.updater.update_payment_state
       end
 
       it "should do nothing when user has credits" do
+        order.adjustments.store_credits.should_not_receive(:destroy_all)
+        order.should_not_receive(:update!)
         order.send(:ensure_sufficient_credit)
         expect(order.adjustments.store_credits).not_to receive(:destroy_all)
         expect(order).not_to receive(:update!)
@@ -186,9 +189,8 @@ module Spree
         end
 
         it "should destroy all store credit adjustments" do
-          expect(order.adjustment_total).to eq(-10)
-          expect(order.total).to eq(100)
-          expect(order.payment_total).to eq(40)
+          order.adjustment_total.should eq(-10)
+          order.total.should eq(40)
           order.send(:ensure_sufficient_credit)
           expect(order.adjustments.store_credits.size).to eq(0)
           order.reload
@@ -208,13 +210,13 @@ module Spree
     context "process_payments!" do
 
       it "should return false when total is greater than zero and payments are empty" do
-        allow(order).to receive_messages(:unprocessed_payments => [])
-        expect(order.process_payments!).to eq(nil)
+        order.stub(:pending_payments => [])
+        order.process_payments!.should be_false
       end
 
       it "should process payment when total is zero and payments is not empty" do
-        allow(order).to receive(:unprocessed_payments).and_return([mock_model(Payment)])
-        expect(order).to receive(:process_payments_without_credits!)
+        order.stub(:pending_payments => [mock_model(Payment)])
+        order.should_receive(:process_payments_without_credits!)
         order.process_payments!
       end
 
@@ -222,7 +224,7 @@ module Spree
 
     context "when minimum item total is set" do
       before do
-        allow(order).to receive_messages(:item_total => 50)
+        order.stub(:item_total => 50)
         order.instance_variable_set(:@store_credit_amount, 25)
       end
 
@@ -230,15 +232,15 @@ module Spree
         before { reset_spree_preferences { |config| config.use_store_credit_minimum = 100 } }
 
         it "should be invalid" do
-          expect(order.valid?).to be_falsey
-          expect(order.errors).not_to be_nil
+          order.valid?.should be_false
+          order.errors.should_not be_nil
         end
 
         it "should be valid when store_credit_amount is 0" do
         order.instance_variable_set(:@store_credit_amount, 0)
-          allow(order).to receive_messages(:item_total => 50)
-          expect(order.valid?).to be_truthy
-          expect(order.errors.count).to eq(0)
+          order.stub(:item_total => 50)
+          order.valid?.should be_true
+          order.errors.count.should == 0
         end
 
       end
@@ -247,8 +249,8 @@ module Spree
         before { reset_spree_preferences { |config| config.use_store_credit_minimum = 10 } }
 
         it "should be valid when item total is greater than limit" do
-          expect(order.valid?).to be_truthy
-          expect(order.errors.count).to eq(0)
+          order.valid?.should be_true
+          order.errors.count.should == 0
         end
 
       end

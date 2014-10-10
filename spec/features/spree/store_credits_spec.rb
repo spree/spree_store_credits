@@ -45,6 +45,8 @@ RSpec.describe 'Promotion for Store Credits', type: :feature, inaccessible: true
       expect(page).to have_content("You have $1,234.56 of store credits")
       fill_in "order_store_credit_amount", :with => "50"
 
+      expect(page).to have_content("You have $1,234.56 of store credits")
+      fill_in_credit_card
       click_button "Save and Continue"
       expect(page).to have_content("Order's item total is less than the minimum allowed ($100.00) to use store credit")
 

@@ -6,6 +6,8 @@ def add_mug_to_cart
 end
 
 def setup_new_user_and_sign_up(email)
+  create(:promotion_for_store_credits, :event_name => "spree.user.signup", :created_at => 2.days.ago)
+  expect {
     visit spree.signup_path
 
     fill_in "Email", with: email
@@ -13,6 +15,7 @@ def setup_new_user_and_sign_up(email)
     fill_in "Password Confirmation", with: "qwerty"
     click_button "Create"
     add_mug_to_cart
+  }.to change(Spree::StoreCredit, :count).by(1)
 end
 
 def fill_in_address

@@ -36,7 +36,28 @@ Spree::Order.class_eval do
     end
   end
 
+  def ensure_line_items_are_in_stock
+    if insufficient_stock_lines.present?
+      errors.add(:base, "Insufficient: #{Spree.t(:insufficient_stock_lines_present)}") and return false
+    end
+  end
+
   private
+
+  def ensure_line_items_present
+    unless line_items.present?
+      errors.add(:base, "No items: #{Spree.t(:there_are_no_items_for_this_order)}") and return false
+    end
+  end
+
+  def ensure_available_shipping_rates
+    if shipments.empty? || shipments.any? { |shipment| shipment.shipping_rates.blank? }
+      # After this point, order redirects back to 'address' state and asks user to pick a proper address
+      # Therefore, shipments are not necessary at this point.
+      shipments.delete_all
+      errors.add(:base, "Cannot be shipped: #{Spree.t(:items_cannot_be_shipped)}") and return false
+    end
+  end
 
   # credit or update store credit adjustment to correct value if amount specified
   def process_store_credit
