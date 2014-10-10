@@ -1,5 +1,7 @@
 require 'bigdecimal'
+
 FactoryGirl.define do
+
   factory :store_credit, class: Spree::StoreCredit do
     amount { BigDecimal.new(rand()*100, 2) }
     reason { SecureRandom.hex(5) }
@@ -16,9 +18,11 @@ FactoryGirl.define do
   end
 
   factory :promotion_for_store_credits, :parent => :promotion do
+
     after(:create) do |p|
       p.promotion_actions [create(:give_store_credit_action, :promotion => p)]
+      p.save!
     end
   end
-end
 
+end

@@ -2,8 +2,8 @@ module Spree
   class Promotion::Actions::GiveStoreCredit < PromotionAction
     preference :amount, :decimal, :default => 0.0
 
-    def perform(options = {})
-      user = lookup_user(options)
+    def perform(payload = {})
+      user = lookup_user(payload)
       give_store_credit(user) if user.present?
     end
 
@@ -12,8 +12,8 @@ module Spree
     end
 
     def give_store_credit(user)
-      user.store_credits.create(:amount => preferred_amount, :remaining_amount => preferred_amount,  
-                                :reason => credit_reason)
+      user.store_credits.create(amount: preferred_amount, remaining_amount: preferred_amount,
+                                reason: credit_reason)
     end
 
     def credit_reason

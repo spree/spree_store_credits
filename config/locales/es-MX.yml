@@ -1,0 +1,22 @@
+---
+es-MX:
+  spree:
+    add_store_credit: "Añadir creditos a Monedero"
+    current_store_credit: "Salto actual Monedero"
+    editing_store_credit: "Editar Monedero"
+    enter_desired_amount_of_store_credit: "Cantidad, que desea usar"
+    listing_store_credits: "Creditos a Monedero"
+    new_store_credit: "Nuevo Credito a Monedero"
+    manage_store_credits: "Administrar Monedero"
+    orders_with_store_credit: "Ordenes con Monedero"
+    remaining_amount: "Saldo de Monedero"
+    store_credit: "Monedero"
+    store_credit_maximum_amount: "El monto de monedero debe de ser menor o igual a %{amount}. Esto es necerio para que la orden se pueda confirmar."
+    store_credits: "Creditos a Monedero"
+    you_have_store_credit: "Usted tiene %{amount} en Monedero"
+    was_fully_used: "fue totalmente usado"
+    was_partially_used: "fue parcialmente usado"
+    cannot_edit_used: "No puede editarse por que ya fue usado"
+    errors:
+      messages:
+        store_credit_minimum_order_not_reach: "El Total de esta Orden es menor al mínimo requerido (%{amount}) para usar Monedero."
