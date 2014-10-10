@@ -5,10 +5,12 @@
 #   config.site_name = "my fancy pants store"
 # end
 #
-def reset_spree_preferences(&block)
+def reset_spree_preferences(&config_block)
   Spree::Preferences::Store.instance.persistence = false
   Spree::Preferences::Store.instance.clear_cache
-  configure_spree_preferences(&block) if block_given?
+
+  config = Rails.application.config.spree.preferences
+  configure_spree_preferences &config_block if block_given?
 end
 
 def configure_spree_preferences
@@ -17,6 +19,7 @@ def configure_spree_preferences
 end
 
 def assert_preference_unset(preference)
-  expect(find("#preferences_#{preference}")['checked']).to be(false)
-  expect(Spree::Config[preference]).to be(false)
+  find("#preferences_#{preference}")['checked'].should be false
+  Spree::Config[preference].should be false
 end
+

@@ -9,10 +9,11 @@ RSpec.describe Spree::Order, type: :model do
     reset_spree_preferences { |config| config.use_store_credit_minimum = 0 }
   end
 
-  describe '.process_store_credit' do
-    before do
-      allow(order).to receive_messages(user: user, total: 50)
-    end
+    context "process_store_credit" do
+      before do
+        allow(order).to receive(:user).and_return(user)
+        allow(order).to receive(:total).and_return(50)
+      end
 
     it 'creates store credit adjustment when user has sufficient credit' do
       order.store_credit_amount = 5.0

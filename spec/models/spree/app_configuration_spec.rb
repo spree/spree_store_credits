@@ -1,8 +1,9 @@
-RSpec.describe Spree::AppConfiguration do
+require 'spec_helper'
 
-  subject { described_class.new }
+describe Spree::AppConfiguration do
+  subject { Spree::AppConfiguration.new }
 
-  it 'have the use_store_credit_minimum preference' do
+  it 'should have the use_store_credit_minimum preference' do
     expect(subject).to respond_to(:preferred_use_store_credit_minimum)
     expect(subject).to respond_to(:preferred_use_store_credit_minimum=)
   end

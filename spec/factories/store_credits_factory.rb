@@ -17,11 +17,10 @@ FactoryGirl.define do
     end
   end
 
-  factory :promotion_for_store_credits, parent: :promotion do
-
-    after(:create) do |promotion|
-      promotion.promotion_actions [create(:give_store_credit_action, promotion: promotion)]
-      promotion.save!
+  factory :promotion_for_store_credits, :parent => :promotion do
+    event_name "spree.user.signup"
+    after(:create) do |p|
+      p.promotion_actions [create(:give_store_credit_action, :promotion => p)]
     end
   end
 

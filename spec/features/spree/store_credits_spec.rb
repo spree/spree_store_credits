@@ -99,10 +99,10 @@ RSpec.feature 'Promotion for Store Credits', :js, :inaccessible do
       verify_store_credits '$1,234.56'
     end
 
-    scenario 'allows using store credit if minimum order amount is reached' do
-      reset_spree_preferences do |config|
-        config.use_store_credit_minimum = 10
-      end
+      # store credits should be unchanged
+      visit spree.account_path
+      page.should have_content("Current store credit: $1,234.56")
+    end
 
       email = 'sam@gmail.com'
       expect {
@@ -138,12 +138,10 @@ RSpec.feature 'Promotion for Store Credits', :js, :inaccessible do
       end
 
       email = 'sam@gmail.com'
-      expect {
-        setup_new_user_and_sign_up(email)
-      }.to change(Spree::StoreCredit, :count).by(1)
+      setup_new_user_and_sign_up(email)
+      Spree.user_class.find_by_email(email).store_credits(true).count.should == 1
 
-      user = Spree.user_class.find_by_email(email)
-      expect(user.store_credits.count).to be(1)
+      click_button "Checkout"
 
       goto_and_process_checkout('3')
 
@@ -152,7 +150,9 @@ RSpec.feature 'Promotion for Store Credits', :js, :inaccessible do
       expect(Spree::Order.last.item_total.to_f).to be(19.99)
       expect(Spree::Order.last.adjustments.last.amount.to_f).to be(-3.00)
 
-      place_order!
+      page.should have_content("$-10.00")
+      page.should have_content("Your order has been processed successfully")
+      Spree::Order.count.should == 2 # 1 Purchased + 1 new empty cart order
 
       expect(Spree::Order.count).to be(1)
       expect(Spree::Payment.count).to be(1)

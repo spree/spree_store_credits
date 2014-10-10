@@ -29,7 +29,11 @@ Spree::Order.class_eval do
 
   # returns the maximum usable amount of store credits
   def store_credit_maximum_usable_amount
-    [store_credit_maximum_amount, [user.store_credits_total, 0].max].min
+    if user.store_credits_total > 0
+      user.store_credits_total > store_credit_maximum_amount ? store_credit_maximum_amount : user.store_credits_total
+    else
+      0
+    end
   end
 
   def ensure_line_items_are_in_stock
@@ -54,56 +58,50 @@ Spree::Order.class_eval do
     if @store_credit_amount <= 0 || @remove_store_credits
       adjustments.store_credits.destroy_all
     else
-      sca = adjustments.store_credits.first
-      if sca
-        sca.update_attributes(amount: -(@store_credit_amount))
+      if sca = adjustments.store_credits.first
+        sca.update_attributes({:amount => -(@store_credit_amount)})
       else
         # create adjustment off association to prevent reload
-        adjustments.store_credits.create(
-          label: Spree.t(:store_credit),
-          amount: -(@store_credit_amount),
-          source_type: 'Spree::StoreCredit',
-          adjustable: self
-        )
+        sca = adjustments.store_credits.create(:label => Spree.t(:store_credit) , :amount => -(@store_credit_amount))
       end
     end
 
-    # recalculate totals and ensure payment is set to new amount
-    updater.update unless new_record?
-    return unless unprocessed_payments.first
-    unprocessed_payments.first.amount = total
-    unprocessed_payments.first.amount
+    # recalc totals and ensure payment is set to new amount
+    update_totals
+    unprocessed_payments.first.amount = total if unprocessed_payments.first
   end
 
   def consume_users_credit
-    return unless completed? && user.present?
-    credit_used = store_credit_amount
+    return unless completed? and user.present?
+    credit_used = self.store_credit_amount
 
     user.store_credits.each do |store_credit|
       break if credit_used == 0
-      break unless store_credit.remaining_amount > 0
-      if store_credit.remaining_amount > credit_used
-        store_credit.remaining_amount -= credit_used
-        store_credit.save
-        credit_used = 0
-      else
-        credit_used -= store_credit.remaining_amount
-        store_credit.update_attribute(:remaining_amount, 0)
+      if store_credit.remaining_amount > 0
+        if store_credit.remaining_amount > credit_used
+          store_credit.remaining_amount -= credit_used
+          store_credit.save
+          credit_used = 0
+        else
+          credit_used -= store_credit.remaining_amount
+          store_credit.update_attribute(:remaining_amount, 0)
+        end
       end
     end
   end
-
   # consume users store credit once the order has completed.
-  state_machine.after_transition to: :complete, do: :consume_users_credit
+  state_machine.after_transition :to => :complete,  :do => :consume_users_credit
 
   # ensure that user has sufficient credits to cover adjustments
   #
   def ensure_sufficient_credit
-    return unless user.store_credits_total < store_credit_amount
-    # user's credit does not cover all adjustments.
-    adjustments.store_credits.destroy_all
-    update!
-    updater.update_payment_state
-    update!
+    if user.store_credits_total < store_credit_amount
+      # user's credit does not cover all adjustments.
+      adjustments.store_credits.destroy_all
+      update!
+      updater.update_payment_state
+      update!
+    end
   end
+
 end
