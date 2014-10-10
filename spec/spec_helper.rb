@@ -22,6 +22,7 @@ Dir["#{File.dirname(__FILE__)}/factories/**/*.rb"].each { |f| require File.expan
 
 require 'spree/testing_support/controller_requests'
 require 'spree/testing_support/authorization_helpers'
+require 'spree/testing_support/order_walkthrough'
 
 require 'ffaker'
 

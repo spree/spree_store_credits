@@ -8,16 +8,8 @@ Spree::PromotionHandler::Page.class_eval do
   end
 
   def activate
-    return unless promotion
-    return unless promotion.eligible?(order)
-    promotion.activate(order: order, user: user)
-  end
-
-  def execute
-    return unless promotion
-    return unless promotion.eligible?(order)
-    promotion.actions.map do |action|
-      action.perform(order: order, user: user)
+    if promotion && promotion.eligible?(order)
+      promotion.activate(order: order, user: user)
     end
   end
 end

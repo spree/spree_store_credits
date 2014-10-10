@@ -10,7 +10,7 @@ Spree::Order.class_eval do
   validates_with StoreCreditMinimumValidator
 
   def process_payments_with_credits!
-    if total > 0 && unprocessed_payments.empty?
+    if total > 0 && pending_payments.empty?
       false
     else
       process_payments_without_credits!
@@ -44,8 +44,19 @@ Spree::Order.class_eval do
 
   private
 
-  def store_credit_processing_required?
-    user.present? && (@store_credit_amount || @remove_store_credits)
+  def ensure_line_items_present
+    unless line_items.present?
+      errors.add(:base, "No items: #{Spree.t(:there_are_no_items_for_this_order)}") and return false
+    end
+  end
+
+  def ensure_available_shipping_rates
+    if shipments.empty? || shipments.any? { |shipment| shipment.shipping_rates.blank? }
+      # After this point, order redirects back to 'address' state and asks user to pick a proper address
+      # Therefore, shipments are not necessary at this point.
+      shipments.delete_all
+      errors.add(:base, "Cannot be shipped: #{Spree.t(:items_cannot_be_shipped)}") and return false
+    end
   end
 
   # credit or update store credit adjustment to correct value if amount specified
@@ -58,7 +69,8 @@ Spree::Order.class_eval do
     if @store_credit_amount <= 0 || @remove_store_credits
       adjustments.store_credits.destroy_all
     else
-      if sca = adjustments.store_credits.first
+      sca = adjustments.store_credits.first
+      if sca
         sca.update_attributes({:amount => -(@store_credit_amount)})
       else
         # create adjustment off association to prevent reload
@@ -66,9 +78,9 @@ Spree::Order.class_eval do
       end
     end
 
-    # recalc totals and ensure payment is set to new amount
+    # recalculate totals and ensure payment is set to new amount
     update_totals
-    unprocessed_payments.first.amount = total if unprocessed_payments.first
+    pending_payments.first.amount = total if pending_payments.first
   end
 
   def consume_users_credit

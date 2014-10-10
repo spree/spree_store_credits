@@ -57,12 +57,16 @@ RSpec.feature 'Promotion for Store Credits', :js, :inaccessible do
       reset_spree_preferences do |config|
         config.use_store_credit_minimum = 1
       end
+      click_button "Save and Continue"
+      # Store credits MAXIMUM => item_total - 0.01 in order to be valid ex : paypal orders
+      expect(page).to have_content("$-19.98")
+      expect(page).to have_content("Your order has been processed successfully")
+      Spree::Order.count.should == 2 # 1 Purchased + 1 new empty cart order
 
-      fill_in_credit_card
-      expect(page).to have_content 'You have $1,234.56 of store credits'
-      fill_in 'order_store_credit_amount', with: '19.99'
 
-      click_button Spree.t(:save_and_continue)
+      # store credits should be consumed
+      visit spree.account_path
+      expect(page).to have_content("Current store credit: $1,214.58")
 
       # Store credits MAXIMUM => item_total - 0.01 in order to be valid ex : paypal orders
       expect(page).to have_content '-$19.99'
@@ -91,13 +95,14 @@ RSpec.feature 'Promotion for Store Credits', :js, :inaccessible do
       goto_and_process_checkout '0'
       place_order!
 
-      expect(Spree::Order.count).to be(1) # 1 Purchased + 1 new empty cart order
-      expect(Spree::Order.last.total.to_f).to be(19.99)
-      expect(Spree::Order.last.item_total.to_f).to be(19.99)
-      expect(Spree::Order.last.adjustments.count).to be(0)
+      fill_in_address
+      click_button "Save and Continue"
+      click_button "Save and Continue"
+      fill_in "order_store_credit_amount", :with => "0"
 
-      verify_store_credits '$1,234.56'
-    end
+      click_button "Save and Continue"
+      expect(page).to have_content("Your order has been processed successfully")
+      Spree::Order.count.should == 2 # 1 Purchased + 1 new empty cart order
 
       # store credits should be unchanged
       visit spree.account_path
@@ -139,20 +144,22 @@ RSpec.feature 'Promotion for Store Credits', :js, :inaccessible do
 
       email = 'sam@gmail.com'
       setup_new_user_and_sign_up(email)
-      Spree.user_class.find_by_email(email).store_credits(true).count.should == 1
-
+      expect(Spree.user_class.find_by_email(email).store_credits(true).count).to eq(1)
+      
       click_button "Checkout"
 
-      goto_and_process_checkout('3')
+      fill_in_address
+      click_button "Save and Continue"
+      click_button "Save and Continue"
 
       expect(page).to have_content '-$3.00'
       expect(Spree::Order.last.total.to_f).to be(16.99)
       expect(Spree::Order.last.item_total.to_f).to be(19.99)
       expect(Spree::Order.last.adjustments.last.amount.to_f).to be(-3.00)
 
-      page.should have_content("$-10.00")
-      page.should have_content("Your order has been processed successfully")
-      Spree::Order.count.should == 2 # 1 Purchased + 1 new empty cart order
+      expect(page).to have_content("$-10.00")
+      expect(page).to have_content("Your order has been processed successfully")
+      expect(Spree::Order.count).to eq(2) # 1 Purchased + 1 new empty cart order
 
       expect(Spree::Order.count).to be(1)
       expect(Spree::Payment.count).to be(1)
@@ -204,10 +211,20 @@ RSpec.feature 'Promotion for Store Credits', :js, :inaccessible do
       goto_and_process_checkout '10'
       expect(page).to have_content '-$10.00'
 
-      place_order!
+      fill_in_address
+      click_button "Save and Continue"
+      click_button "Save and Continue"
+      fill_in "order_store_credit_amount", :with => "10"
 
-      verify_store_credits '$10.00'
-      expect(Spree::Order.count).to be(1)
+      click_button "Save and Continue"
+      page.should have_content("$-10.00")
+      page.should have_content("Your order has been processed successfully")
+
+      # store credits should be consumed
+      visit spree.account_path
+
+      page.should_not have_content('Current store credit: $10.00')
+      Spree::Order.count.should == 2 # 1 Purchased + 1 new empty cart order
     end
   end
 end

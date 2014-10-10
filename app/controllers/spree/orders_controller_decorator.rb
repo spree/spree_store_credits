@@ -1,15 +1,9 @@
-module Spree
-  OrdersController.class_eval do
-    after_action :fire_visited_path, only: :populate
+Spree::OrdersController.class_eval do
 
-    def fire_visited_path
-      current_path = URI.parse(request.original_url).path
-      PromotionHandler::Page.new(current_order, current_path, try_spree_current_user).activate
-    end
+  after_action :fire_visited_path, only: :populate
 
-    def show
-      @order = Order.find_by_number!(params[:id])
-      PromotionHandler::Page.new(@order, 'orders', try_spree_current_user).execute
-    end
+  def fire_visited_path
+    current_path = URI.parse(request.original_url).path
+    Spree::PromotionHandler::Page.new(current_order, current_path, try_spree_current_user).activate
   end
 end
