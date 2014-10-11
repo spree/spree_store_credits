@@ -40,10 +40,26 @@ RSpec.describe 'Promotion for Store Credits', type: :feature, inaccessible: true
       fill_in_credit_card
 
       expect(page).to have_content("You have $1,234.56 of store credits")
-      fill_in_credit_card
+      fill_in "order_store_credit_amount", :with => "50"
+
       click_button "Save and Continue"
       expect(page).to have_content("Order's item total is less than the minimum allowed ($100.00) to use store credit")
 
+      reset_spree_preferences do |config|
+        config.use_store_credit_minimum = 1
+      end
+      
+      fill_in_credit_card
+
+      click_button "Save and Continue"
+      # Store credits MAXIMUM => item_total - 0.01 in order to be valid ex : paypal orders
+      expect(page).to have_content("-$19.99")
+      expect(page).to have_content("Your order has been processed successfully")
+      expect(Spree::Order.count).to eq(1) 
+
+      # store credits should be consumed
+      visit spree.account_path
+      expect(page).to have_content("Current store credit: $1,214.57")
     end
 
     it "should allow if not using store credit and minimum order is not reached", :js => true do
@@ -53,8 +69,9 @@ RSpec.describe 'Promotion for Store Credits', type: :feature, inaccessible: true
 
       email = 'patrick@gmail.com'
       setup_new_user_and_sign_up(email)
+      user = Spree.user_class.where(email: email).first
 
-      expect(Spree.user_class.find_by_email(email).store_credits(true).count).to eq(1)
+      expect(user.store_credits(true).count).to eq(1)
 
       click_button "Checkout"
 
@@ -62,18 +79,14 @@ RSpec.describe 'Promotion for Store Credits', type: :feature, inaccessible: true
       click_button "Save and Continue"
       click_button "Save and Continue"
       fill_in_credit_card
+      fill_in "order_store_credit_amount", :with => "0"
 
-      expect(page).to have_content("You have $1,234.56 of store credits")
-      
-      fill_in "order_store_credit_amount", with: "0"
       click_button "Save and Continue"
-      
-      expect(page).to have_content("ORDER TOTAL: $19.99")
-      click_button "Place Order"
-      sleep 2
 
-      expect(Spree::Order.count).to eq(1)
-      expect(page).to have_content("Your order has been processed successfully")
+      click_button Spree.t(:place_order)
+
+      expect(page).to have_content(Spree.t(:order_processed_successfully))
+      expect(Spree::Order.count).to eq(1) # 1 Purchased + 1 new empty cart order
 
       # store credits should be unchanged
       visit spree.account_path
