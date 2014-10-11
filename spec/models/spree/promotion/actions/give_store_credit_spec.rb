@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-RSpec.describe Spree::Promotion::Actions::GiveStoreCredit do
+RSpec.describe Spree::Promotion::Actions::GiveStoreCredit, :type => :model do
   let(:promotion) { create(:promotion) }
   subject { 
     a = Spree::Promotion::Actions::GiveStoreCredit.new
