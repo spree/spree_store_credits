@@ -25,4 +25,21 @@ FactoryGirl.define do
     end
   end
 
+  factory :give_store_credit_as_percentage_action, :class => Spree::Promotion::Actions::GiveStoreCreditAsPercentage do |f|
+    association :promotion
+
+    after(:create) do |action|
+      action.set_preference(:flat_percent, 15)
+      action.save!
+    end
+  end
+
+  factory :promotion_for_store_credits_as_percentage, :parent => :promotion do
+
+    after(:create) do |p|
+      p.promotion_actions [create(:give_store_credit_as_percentage_action, :promotion => p)]
+      p.save!
+    end
+  end
+
 end

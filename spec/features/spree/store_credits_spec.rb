@@ -11,14 +11,17 @@ RSpec.describe 'Promotion for Store Credits', type: :feature, inaccessible: true
 
   context "#new user" do
     let(:address) { create(:address, :state => Spree::State.first) }
+    let(:promotion) { create(:promotion_for_store_credits, path: 'orders/populate', created_at: 2.days.ago) }
 
     before do
+      promotion
       shipping_method.calculator.set_preference(:amount, 10)
     end
 
     it "should give me a store credit when I register", :js => true do
       email = 'paul@gmail.com'
-      setup_new_user_and_sign_up(email)
+
+      expect{setup_new_user_and_sign_up(email)}.to change(Spree::StoreCredit, :count).by(1)
       new_user = Spree.user_class.find_by_email email
       expect(new_user.store_credits.size).to eq(1)
     end
@@ -28,8 +31,8 @@ RSpec.describe 'Promotion for Store Credits', type: :feature, inaccessible: true
        config.use_store_credit_minimum = 100
       end
       email = 'george@gmail.com'
-      setup_new_user_and_sign_up(email)
-
+      expect{setup_new_user_and_sign_up(email)}.to change(Spree::StoreCredit, :count).by(1)
+      
       # regression fix double giving store credits
       expect(Spree.user_class.find_by(email: email).store_credits(true).count).to eq(1)
       click_button "Checkout"
@@ -50,6 +53,7 @@ RSpec.describe 'Promotion for Store Credits', type: :feature, inaccessible: true
       end
       
       fill_in_credit_card
+      fill_in "order_store_credit_amount", :with => "50"
 
       click_button "Save and Continue"
       # Store credits MAXIMUM => item_total - 0.01 in order to be valid ex : paypal orders
@@ -68,7 +72,7 @@ RSpec.describe 'Promotion for Store Credits', type: :feature, inaccessible: true
       end
 
       email = 'patrick@gmail.com'
-      setup_new_user_and_sign_up(email)
+      expect{setup_new_user_and_sign_up(email)}.to change(Spree::StoreCredit, :count).by(1)
       user = Spree.user_class.where(email: email).first
 
       expect(user.store_credits(true).count).to eq(1)
@@ -98,7 +102,7 @@ RSpec.describe 'Promotion for Store Credits', type: :feature, inaccessible: true
         config.use_store_credit_minimum = 10
       end
       email = 'sam@gmail.com'
-      setup_new_user_and_sign_up(email)
+      expect{setup_new_user_and_sign_up(email)}.to change(Spree::StoreCredit, :count).by(1)
       expect(Spree.user_class.find_by_email(email).store_credits(true).count).to eq(1)
 
       click_button "Checkout"

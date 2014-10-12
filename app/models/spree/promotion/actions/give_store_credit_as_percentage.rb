@@ -1,6 +1,7 @@
 module Spree
   class Promotion::Actions::GiveStoreCreditAsPercentage < PromotionAction
     include Spree::CalculatedAdjustments
+    preference :flat_percent, :decimal, :default => 10
  
     delegate :eligible?, to: :promotion
 
@@ -8,7 +9,7 @@ module Spree
     
     def perform(payload = {})
       order = payload[:order]
-      user = payload[:user]
+      user = payload[:user] || try_spree_current_user
       return if user_store_credits_already_applied?(user, order)
       amount = compute_amount(order)
       return if amount == 0
@@ -36,7 +37,7 @@ module Spree
 
       def ensure_action_has_calculator
         return if self.calculator
-        self.calculator = Calculator::FlatPercentItemTotal.new(preferred_flat_percent: 10)
+        self.calculator = Calculator::FlatPercentItemTotal.new(preferred_flat_percent: preferred_flat_percent)
       end
 
 
