@@ -17,6 +17,8 @@ es-MX:
     was_fully_used: "fue totalmente usado"
     was_partially_used: "fue parcialmente usado"
     cannot_edit_used: "No puede editarse por que ya fue usado"
+    preferred_flat_percent: "Porcentaje de descuento en monedero"
+    
     errors:
       messages:
         store_credit_minimum_order_not_reach: "El Total de esta Orden es menor al mínimo requerido (%{amount}) para usar Monedero."
