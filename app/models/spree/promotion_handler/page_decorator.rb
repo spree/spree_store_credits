@@ -17,15 +17,9 @@ Spree::PromotionHandler::Page.class_eval do
   def execute
     return unless promotion
     if promotion && promotion.eligible?(order)
-      results = promotion.actions.map do |action|
+      promotion.actions.map do |action|
         action.perform(order: order, user: user)
       end
-      action_taken = results.include?(true)
-      if action_taken
-        promotion.orders << order
-        promotion.save
-      end
-
     end
   end
 end

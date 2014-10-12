@@ -32,7 +32,7 @@ module Spree
       # Receives an adjustment +source+ (here a PromotionAction object) and tells
       # if the order has adjustments from that already
       def user_store_credits_already_applied?(user, order)
-        user.store_credits.where(reason: credit_reason(order.number)).exists?
+        promotion.orders.where(id: order.id).exists?
       end
 
       def ensure_action_has_calculator
@@ -44,6 +44,8 @@ module Spree
       def give_store_credit(user, amount, order)
         user.store_credits.create(amount: amount, remaining_amount: amount,
                                   reason: credit_reason(order.number))
+        promotion.orders << order
+        promotion.save
       end
 
       def credit_reason(number)
