@@ -129,6 +129,7 @@ RSpec.describe 'Promotion for Store Credits', type: :feature, inaccessible: true
       click_on "Place Order"
       expect(page).to have_content("Your order has been processed successfully")
       expect(Spree::Order.count).to eq(1)
+      expect(Spree::Payment.count).to eq(1)
       expect(Spree::Order.last.total).to eq(9.99)
       expect(Spree::Order.last.item_total).to eq(19.99)
       expect(Spree::Order.last.adjustments.last.amount).to eq(-10.00)

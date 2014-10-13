@@ -37,8 +37,8 @@ module Spree
       end
 
       def ensure_action_has_calculator
-        return if self.calculator
-        self.calculator = Calculator::FlatPercentItemTotal.new(preferred_flat_percent: preferred_flat_percent)
+        self.calculator ||= Calculator::FlatPercentItemTotal.new()
+        self.calculator.preferred_flat_percent = preferred_flat_percent
       end
 
 

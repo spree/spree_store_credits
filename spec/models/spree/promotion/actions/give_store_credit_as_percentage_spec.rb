@@ -40,7 +40,7 @@ RSpec.describe Spree::Promotion::Actions::GiveStoreCreditAsPercentage, :type => 
       action.perform(payload)
       action.perform(payload)
       expect(user.store_credits.count).to eq(1)
-      expect(user.store_credits.first.amount.to_i).to eq(1)
+      expect(user.store_credits.first.amount).to eq(1)
     end
 
     it "should calculate the percentage with respect the order items total price" do
@@ -49,7 +49,18 @@ RSpec.describe Spree::Promotion::Actions::GiveStoreCreditAsPercentage, :type => 
                           create(:line_item, :price => 50.0, :quantity => 1)]
       action.perform(payload)
       expect(user.store_credits.count).to eq(1)
-      expect(user.store_credits.first.amount.to_i).to eq(25)
+      expect(user.store_credits.first.amount).to eq(25)
+    end
+
+    it "should allow to change preferred percentage and use that for the order items total price" do
+      order.shipments.create!(:cost => 10)
+      action.preferred_flat_percent = 15
+      action.save
+      order.line_items = [create(:line_item, :price => 100.0, :quantity => 2),
+                          create(:line_item, :price => 50.0, :quantity => 1)]
+      action.perform(payload)
+      expect(user.store_credits.count).to eq(1)
+      expect(user.store_credits.first.amount).to eq(37.5)
     end
 
   end

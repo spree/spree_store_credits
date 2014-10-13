@@ -40,7 +40,7 @@ RSpec.describe 'Promotion for Store Credits as Percentage', type: :feature, inac
 
       # store credits should be consumed
       visit spree.account_path
-      expect(page).to have_content("Current store credit: $2.00")
+      expect(page).to have_content("Current store credit: $3.00")
     end
 
     it "should not give me a store credit for unfinished purchases", :js => true do
@@ -62,7 +62,7 @@ RSpec.describe 'Promotion for Store Credits as Percentage', type: :feature, inac
 
       # store credits should be consumed
       visit spree.account_path
-      expect(page).to_not have_content("Current store credit: $2.00")
+      expect(page).to_not have_content("Current store credit: $3.00")
     end
 
     it "should no give me a store credit when I view a past order", :js => true do
@@ -89,12 +89,12 @@ RSpec.describe 'Promotion for Store Credits as Percentage', type: :feature, inac
 
       # store credits should be consumed
       visit spree.account_path
-      expect(page).to have_content("Current store credit: $2.00")
+      expect(page).to have_content("Current store credit: $3.00")
 
       visit order_path
 
       visit spree.account_path
-      expect(page).to have_content("Current store credit: $2.00")      
+      expect(page).to have_content("Current store credit: $3.00")      
     end 
 
     it "should accumulate my store credits", :js => true do
@@ -121,7 +121,7 @@ RSpec.describe 'Promotion for Store Credits as Percentage', type: :feature, inac
 
       # store credits should be consumed
       visit spree.account_path
-      expect(page).to have_content("Current store credit: $2.00")
+      expect(page).to have_content("Current store credit: $3.00")
 
       bag = create(:product, name: "RoR Bag", price: 59.99)
       visit spree.root_path
@@ -147,7 +147,7 @@ RSpec.describe 'Promotion for Store Credits as Percentage', type: :feature, inac
 
       # store credits should be consumed
       visit spree.account_path
-      expect(page).to have_content("Current store credit: $8.00")      
+      expect(page).to have_content("Current store credit: $12.00")      
     end    
 
     after(:each) { reset_spree_preferences }
