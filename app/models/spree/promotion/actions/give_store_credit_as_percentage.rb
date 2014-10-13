@@ -9,6 +9,7 @@ module Spree
     
     def perform(payload = {})
       order = payload[:order]
+      return unless payload[:user]
       user = payload[:user] || try_spree_current_user
       return if user_store_credits_already_applied?(user, order)
       amount = compute_amount(order)
@@ -49,7 +50,7 @@ module Spree
       end
 
       def credit_reason(number)
-        "#{Spree.t(:promotion)} #{promotion.name} for order #{number}"
+        "#{Spree.t(:promotion)} #{promotion.name} #{Spree.t(:for_order)} #{number}"
       end
 
   end
