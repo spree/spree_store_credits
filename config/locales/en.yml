@@ -18,6 +18,13 @@ en:
     was_partially_used: "was partially used"
     cannot_edit_used: "Cannot be edited because it has been used"
     preferred_flat_percent: "Preferred flat percent"
+    promotion_action_types:
+      give_store_credit:
+        description: Gives the user store credit of the amount specified
+        name: Give store credit
+      give_store_credit_as_percentage:
+        description: Gives the user store credit as percentage of the total of his last purchase
+        name: Give store credit as percentage of last purchase
     errors:
       messages:
         store_credit_minimum_order_not_reach: "Order's item total is less than the minimum allowed (%{amount}) to use store credit."

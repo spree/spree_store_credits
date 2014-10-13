@@ -5,6 +5,7 @@ es-MX:
     current_store_credit: "Salto actual Monedero"
     editing_store_credit: "Editar Monedero"
     enter_desired_amount_of_store_credit: "Cantidad, que desea usar"
+    for_order: "por Pedido"
     listing_store_credits: "Creditos a Monedero"
     new_store_credit: "Nuevo Credito a Monedero"
     manage_store_credits: "Administrar Monedero"
@@ -18,7 +19,13 @@ es-MX:
     was_partially_used: "fue parcialmente usado"
     cannot_edit_used: "No puede editarse por que ya fue usado"
     preferred_flat_percent: "Porcentaje de descuento en monedero"
-    
+    promotion_action_types:
+      give_store_credit:
+        description: Da creditos en Monedero por el monto específicado
+        name: Da creditos a Monedero
+      give_store_credit_as_percentage:
+        description: Da creditos en Monedero como porcentaje de la compra más reciente
+        name: Da creditos en Monedero como % de la última compra
     errors:
       messages:
         store_credit_minimum_order_not_reach: "El Total de esta Orden es menor al mínimo requerido (%{amount}) para usar Monedero."
