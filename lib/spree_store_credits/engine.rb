@@ -16,6 +16,7 @@ module SpreeStoreCredits
 
     initializer 'spree_store_credits.register.promotion.actions', :after => 'spree.promo.register.promotions.actions' do |app|
       app.config.spree.promotions.actions <<  Spree::Promotion::Actions::GiveStoreCredit
+      app.config.spree.promotions.actions <<  Spree::Promotion::Actions::GiveStoreCreditAsPercentage
     end
 
     config.to_prepare &method(:activate).to_proc
