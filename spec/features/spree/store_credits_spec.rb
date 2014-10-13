@@ -59,7 +59,11 @@ RSpec.describe 'Promotion for Store Credits', type: :feature, inaccessible: true
       # Store credits MAXIMUM => item_total - 0.01 in order to be valid ex : paypal orders
       expect(page).to have_content("-$19.99")
       expect(page).to have_content("Your order has been processed successfully")
-      expect(Spree::Order.count).to eq(1) 
+      expect(Spree::Order.count).to eq(1)
+      expect(Spree::Order.last.total).to eq(0)
+      expect(Spree::Order.last.item_total).to eq(19.99)
+      expect(Spree::Order.last.adjustments.last.amount).to eq(-19.99)
+      
 
       # store credits should be consumed
       visit spree.account_path
@@ -91,6 +95,9 @@ RSpec.describe 'Promotion for Store Credits', type: :feature, inaccessible: true
 
       expect(page).to have_content(Spree.t(:order_processed_successfully))
       expect(Spree::Order.count).to eq(1) # 1 Purchased + 1 new empty cart order
+      expect(Spree::Order.last.total).to eq(19.99)
+      expect(Spree::Order.last.item_total).to eq(19.99)
+      expect(Spree::Order.last.adjustments.count).to eq(0)
 
       # store credits should be unchanged
       visit spree.account_path
@@ -116,9 +123,15 @@ RSpec.describe 'Promotion for Store Credits', type: :feature, inaccessible: true
       click_button "Save and Continue"
 
       expect(page).to have_content("-$10.00")
+      expect(Spree::Order.last.total).to eq(9.99)
+      expect(Spree::Order.last.item_total).to eq(19.99)
+      expect(Spree::Order.last.adjustments.last.amount).to eq(-10.00)
       click_on "Place Order"
       expect(page).to have_content("Your order has been processed successfully")
       expect(Spree::Order.count).to eq(1)
+      expect(Spree::Order.last.total).to eq(9.99)
+      expect(Spree::Order.last.item_total).to eq(19.99)
+      expect(Spree::Order.last.adjustments.last.amount).to eq(-10.00)
 
       # store credits should be consumed
       visit spree.account_path

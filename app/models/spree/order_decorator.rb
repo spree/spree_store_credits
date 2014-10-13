@@ -58,7 +58,7 @@ Spree::Order.class_eval do
     end
 
     # recalculate totals and ensure payment is set to new amount
-    updater.update_totals
+    updater.update
     unprocessed_payments.first.amount = total if unprocessed_payments.first
   end
 
