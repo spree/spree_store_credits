@@ -6,3 +6,5 @@ Gemfile.lock
 coverage
 .sass-cache
 tmp
+.ruby-version
+.ruby-gemset
