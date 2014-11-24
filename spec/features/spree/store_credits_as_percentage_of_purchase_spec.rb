@@ -147,8 +147,6 @@ RSpec.describe 'Promotion for Store Credits as Percentage', type: :feature, inac
       click_button Spree.t(:place_order)
       
       expect(@user.store_credits.count).to eq(2)
-
-      puts "Spree::Payment.all: #{Spree::Payment.all.inspect}"
       
       expect(Spree::Order.last.adjustments.last.amount).to eq(-3.00)
       expect(Spree::Order.last.total).to eq(56.99)

@@ -1,3 +1,3 @@
 Spree::Adjustment.class_eval do
-  scope :store_credits, lambda { where(:source_type => 'Spree::StoreCredit') }
+  scope :store_credits, -> { where(source_type: 'Spree::StoreCredit') }
 end
