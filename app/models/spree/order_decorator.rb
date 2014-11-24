@@ -74,13 +74,16 @@ Spree::Order.class_eval do
         sca.update_attributes({:amount => -(@store_credit_amount)})
       else
         # create adjustment off association to prevent reload
-        sca = adjustments.store_credits.create(:label => Spree.t(:store_credit) , :amount => -(@store_credit_amount))
+        sca = adjustments.store_credits.create(:label => Spree.t(:store_credit) , :amount => -(@store_credit_amount), source_type: 'Spree::StoreCredit', adjustable: self)
       end
     end
 
     # recalculate totals and ensure payment is set to new amount
-    update_totals
-    pending_payments.first.amount = total if pending_payments.first
+    updater.update unless new_record?
+    if unprocessed_payments.first
+      unprocessed_payments.first.amount = total
+      return unprocessed_payments.first.amount 
+    end
   end
 
   def consume_users_credit
@@ -102,8 +105,8 @@ Spree::Order.class_eval do
     end
   end
   # consume users store credit once the order has completed.
-  state_machine.after_transition :to => :complete,  :do => :consume_users_credit
-
+  state_machine.after_transition to: :complete, do: :consume_users_credit 
+  
   # ensure that user has sufficient credits to cover adjustments
   #
   def ensure_sufficient_credit
