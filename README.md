@@ -12,7 +12,7 @@ This Spree extension allows admins to issue arbitrary amounts of store credit to
 Add spree_affiliate to your `Gemfile`:
 
 ```ruby
-gem 'spree_store_credits', github: 'spree-contrib/spree_store_credits', branch: '2-4-stable'
+gem 'spree_store_credits', github: 'spree-contrib/spree_store_credits', branch: 'master'
 ```
 
 Run:
