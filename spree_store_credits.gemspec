@@ -1,7 +1,12 @@
+lib = File.expand_path('../lib/', __FILE__)
+$LOAD_PATH.unshift lib unless $LOAD_PATH.include?(lib)
+
+require 'spree_store_credits/version'
+
 Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
   s.name        = 'spree_store_credits'
-  s.version     = '1.1.2'
+  s.version     = SpreeStoreCredits.version
   s.summary     = 'Provides store credits for Spree Commerce.'
   s.description = s.summary
   s.required_ruby_version = '>= 1.9.3'
