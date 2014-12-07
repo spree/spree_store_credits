@@ -1,165 +1,106 @@
-require 'spec_helper'
+RSpec.feature 'Promotion for Store Credits as Percentage', :js, :inaccessible do
 
-RSpec.describe 'Promotion for Store Credits as Percentage', type: :feature, inaccessible: true do
-  let!(:country) { create(:country, :states_required => true) }
-  let!(:state) { create(:state, :country => country) }
-  let!(:shipping_method) { create(:shipping_method) }
-  let!(:stock_location) { create(:stock_location) }
-  let!(:mug) { create(:product, :name => "RoR Mug") }
-  let!(:payment_method) { create(:credit_card_payment_method) }
-  let!(:zone) { create(:zone) }
+  given!(:country)         { create(:country, states_required: true) }
+  given!(:state)           { create(:state, country: country) }
+  given!(:shipping_method) { create(:shipping_method) }
+  given!(:stock_location)  { create(:stock_location) }
+  given!(:mug)             { create(:product, name: 'RoR Mug') }
+  given!(:payment_method)  { create(:credit_card_payment_method) }
+  given!(:zone)            { create(:zone) }
 
-  context "#new user" do
-    let(:address) { create(:address, :state => Spree::State.first) }
-    let(:promotion) { create(:promotion_for_store_credits_as_percentage, path: 'orders', created_at: 2.days.ago) }
+  context 'when new user' do
+    given!(:address)   { create(:address, state: Spree::State.first) }
+    given!(:promotion) { create(:promotion_for_store_credits_as_percentage, path: 'orders', created_at: 2.days.ago) }
 
-    before do
+    background do
       promotion
       shipping_method.calculator.set_preference(:amount, 10)
     end
 
-    it "should give me a store credit when I purchase an order", :js => true do
+    after { reset_spree_preferences }
+
+    scenario 'gives me a store credit when I purchase an order' do
       email = 'paul@gmail.com'
       setup_new_user_and_sign_up(email)
       new_user = Spree.user_class.where(email: email).first
-      expect(new_user.store_credits.count).to eq(0)
-      click_button "Checkout"
+      expect(new_user.store_credits.count).to be(0)
 
-      fill_in_address
-      click_button "Save and Continue"
-      click_button "Save and Continue"
-      fill_in_credit_card
+      goto_and_process_checkout
+      place_order!
 
-      click_button "Save and Continue"
+      expect(Spree::Order.count).to be(1)
+      expect(new_user.store_credits.count).to be(1)
 
-      click_button Spree.t(:place_order)
-      
-      expect(page).to have_content("Your order has been processed successfully")
-      expect(Spree::Order.count).to eq(1) 
-      expect(new_user.store_credits.count).to eq(1)
-
-      # store credits should be consumed
-      visit spree.account_path
-      expect(page).to have_content("Current store credit: $3.00")
+      verify_store_credits '$3.00'
     end
 
-    it "should not give me a store credit for unfinished purchases", :js => true do
+    scenario 'does not give me a store credit for unfinished purchases' do
       email = 'paul@gmail.com'
       setup_new_user_and_sign_up(email)
       new_user = Spree.user_class.where(email: email).first
-      expect(new_user.store_credits.count).to eq(0)
-      click_button "Checkout"
+      expect(new_user.store_credits.count).to be(0)
 
-      fill_in_address
-      click_button "Save and Continue"
-      click_button "Save and Continue"
-      fill_in_credit_card
+      goto_and_process_checkout
 
-      click_button "Save and Continue"
-
-      expect(Spree::Order.count).to eq(1) 
-      expect(new_user.store_credits.count).to eq(0)
+      expect(Spree::Order.count).to be(1)
+      expect(new_user.store_credits.count).to be(0)
 
       # store credits should be consumed
       visit spree.account_path
-      expect(page).to_not have_content("Current store credit: $3.00")
+      expect(page).to_not have_content 'Current store credit: $3.00'
     end
 
-    it "should no give me a store credit when I view a past order", :js => true do
+    scenario 'does not give me a store credit when I view a past order' do
       email = 'paul@gmail.com'
       setup_new_user_and_sign_up(email)
       new_user = Spree.user_class.where(email: email).first
-      expect(new_user.store_credits.count).to eq(0)
-      click_button "Checkout"
+      expect(new_user.store_credits.count).to be(0)
 
-      fill_in_address
-      click_button "Save and Continue"
-      click_button "Save and Continue"
-      fill_in_credit_card
+      goto_and_process_checkout
+      place_order!
 
-      click_button "Save and Continue"
+      expect(current_path).to eq spree.order_path(Spree::Order.last)
+      expect(Spree::Order.count).to be(1)
+      expect(new_user.store_credits.count).to be(1)
 
-      click_button Spree.t(:place_order)
-      
-      expect(page).to have_content("Your order has been processed successfully")
-      order_path = spree.order_path(Spree::Order.last)
-      expect(current_path).to eql(spree.order_path(Spree::Order.last))
-      expect(Spree::Order.count).to eq(1) 
-      expect(new_user.store_credits.count).to eq(1)
+      verify_store_credits '$3.00'
+    end
 
-      # store credits should be consumed
-      visit spree.account_path
-      expect(page).to have_content("Current store credit: $3.00")
-
-      visit order_path
-
-      visit spree.account_path
-      expect(page).to have_content("Current store credit: $3.00")      
-    end 
-
-    it "should accumulate my store credits", :js => true do
+    scenario 'accumulates my store credits' do
       email = 'paul@gmail.com'
       setup_new_user_and_sign_up(email)
-      @user = Spree.user_class.where(email: email).first
-      expect(@user.store_credits.count).to eq(0)
-      click_button "Checkout"
+      user = Spree.user_class.where(email: email).first
+      expect(user.store_credits.count).to be(0)
 
-      fill_in_address
-      click_button "Save and Continue"
-      click_button "Save and Continue"
-      fill_in_credit_card
+      goto_and_process_checkout
+      place_order!
 
-      click_button "Save and Continue"
+      expect(current_path).to eq spree.order_path(Spree::Order.last)
+      expect(Spree::Order.count).to be(1)
 
-      click_button Spree.t(:place_order)
-      
-      expect(page).to have_content("Your order has been processed successfully")
-      order_path = spree.order_path(Spree::Order.last)
-      expect(current_path).to eql(spree.order_path(Spree::Order.last))
-      expect(Spree::Order.count).to eq(1) 
-      
-      # store credits should be consumed
-      visit spree.account_path
-      expect(page).to have_content("Current store credit: $3.00")
+      verify_store_credits '$3.00'
 
-      expect(@user.store_credits.count).to eq(1)
-      expect(@user.store_credits[0].amount).to eq(3)
+      expect(user.store_credits.count).to be(1)
+      expect(user.store_credits[0].amount.to_f).to be(3.0)
 
-      bag = create(:product, name: "RoR Bag", price: 59.99)
+      bag = create(:product, name: 'RoR Bag', price: 59.99)
       visit spree.root_path
+
       click_link bag.name
-      expect(page).to have_content(Spree.t(:add_to_cart))
-      click_button "add-to-cart-button"
+      expect(page).to have_content Spree.t(:add_to_cart)
+      click_button Spree.t(:add_to_cart)
 
-      click_button Spree.t(:checkout)
-      sleep 1
-      
-      fill_in_address
-      click_on Spree.t(:save_and_continue)
-      sleep 2
-      click_on Spree.t(:save_and_continue)
-      
-      fill_in "order_store_credit_amount", :with => "3"
+      goto_and_process_checkout '3'
+      place_order!
 
-      click_on Spree.t(:save_and_continue)
+      expect(user.store_credits.count).to be(2)
+      expect(Spree::Order.last.adjustments.last.amount.to_f).to be(-3.00)
+      expect(Spree::Order.last.total.to_f).to be(56.99)
+      expect(Spree::Order.last.item_total.to_f).to be(59.99)
+      expect(Spree::Payment.last.amount.to_f).to be(Spree::Order.last.total.to_f)
+      expect(Spree::Order.count).to be(2)
 
-
-      click_button Spree.t(:place_order)
-      
-      expect(@user.store_credits.count).to eq(2)
-      
-      expect(Spree::Order.last.adjustments.last.amount).to eq(-3.00)
-      expect(Spree::Order.last.total).to eq(56.99)
-      expect(Spree::Order.last.item_total).to eq(59.99)
-      expect(Spree::Payment.last.amount.to_f).to eq Spree::Order.last.total.to_f
-      
-      expect(Spree::Order.count).to eq(2) 
-
-      # store credits should be consumed
-      visit spree.account_path
-      expect(page).to have_content("#{Spree.t(:current_store_credit)}: $9.00")        
-    end    
-
-    after(:each) { reset_spree_preferences }
+      verify_store_credits '$9.00'
+    end
   end
 end

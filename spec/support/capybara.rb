@@ -26,6 +26,13 @@ module FeatureHelpers
     add_mug_to_cart
   end
 
+  def process_new_user
+    email = 'paul@gmail.com'
+    setup_new_user_and_sign_up(email)
+    user = Spree.user_class.where(email: email).first
+    expect(user.store_credits.count).to be(0)
+  end
+
   def fill_in_address
     address = 'order_bill_address_attributes'
     fill_in "#{address}_firstname", with: 'Ryan'
@@ -42,6 +49,27 @@ module FeatureHelpers
     fill_in 'card_number', with: '4111111111111111'
     fill_in 'card_expiry', with: '01 / 20'
     fill_in 'card_code',   with: '1'
+  end
+
+  def goto_and_process_checkout(credit_amount = nil)
+    click_button Spree.t(:checkout)
+    fill_in_address
+    click_button Spree.t(:save_and_continue)
+    click_button Spree.t(:save_and_continue)
+    fill_in_credit_card if page.has_selector?('#card_number')
+    fill_in 'order_store_credit_amount', with: credit_amount if credit_amount
+    click_button Spree.t(:save_and_continue)
+  end
+
+  def place_order!
+    click_button Spree.t(:place_order)
+    expect(page).to have_content Spree.t(:order_processed_successfully)
+  end
+
+  def verify_store_credits(dollar)
+    visit spree.account_path
+    expect(current_path).to eq spree.account_path
+    expect(page).to have_text "Current store credit: #{dollar}"
   end
 end
 
