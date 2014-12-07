@@ -1,3 +1,7 @@
+\#*
+*~
+.#*
+.DS_Store
 spec/dummy
 Gemfile.lock
 *.swp
