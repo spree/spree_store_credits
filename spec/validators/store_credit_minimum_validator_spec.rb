@@ -1,5 +1,3 @@
-require 'spec_helper'
-
 require 'active_model'
 require 'rspec/rails/extensions'
 
@@ -25,11 +23,11 @@ RSpec.describe StoreCreditMinimumValidator do
       subject.item_total = 200.00
     end
 
-    it 'should not validate if there is no store credit' do
+    it 'does not validate if there is no store credit' do
       expect(subject).to be_valid
     end
 
-    it 'should not validate if there is a store credit' do
+    it 'does not validate if there is a store credit' do
       subject.store_credit_amount = 100.00
       expect(subject).to be_valid
     end
@@ -41,18 +39,18 @@ RSpec.describe StoreCreditMinimumValidator do
       subject.item_total = 10.00
     end
 
-    it 'should not validate if there is no store credit' do
+    it 'does not validate if there is no store credit' do
       expect(subject).to be_valid
     end
 
-    it 'should not validate if there is a store credit and the total is below the minimum' do
+    it 'does not validate if there is a store credit and the total is below the minimum' do
       subject.store_credit_amount = 10.00
       expect(subject).not_to be_valid
       expect(subject.errors[:base]).not_to be_empty
-      expect(subject.errors[:base]).to eq(["Order's item total is less than the minimum allowed ($20.00) to use store credit."])
+      expect(subject.errors[:base]).to match_array ["Order's item total is less than the minimum allowed ($20.00) to use store credit."]
     end
 
-    it 'should not add a validation error if an error already exists' do
+    it 'does not add a validation error if an error already exists' do
       subject.other_validated_attr = nil
       expect(subject).not_to be_valid
 
@@ -61,7 +59,7 @@ RSpec.describe StoreCreditMinimumValidator do
       expect(subject.errors[:base]).to be_empty
     end
 
-    it 'should validate if there is a store credit and the total is below the minimum' do
+    it 'validates if there is a store credit and the total is below the minimum' do
       subject.item_total = 20.00
       subject.store_credit_amount = 10.00
       expect(subject).to be_valid
