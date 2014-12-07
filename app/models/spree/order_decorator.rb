@@ -71,36 +71,39 @@ Spree::Order.class_eval do
     else
       sca = adjustments.store_credits.first
       if sca
-        sca.update_attributes({amount: -(@store_credit_amount)})
+        sca.update_attributes(amount: -(@store_credit_amount))
       else
         # create adjustment off association to prevent reload
-        sca = adjustments.store_credits.create(label: Spree.t(:store_credit) , amount: -(@store_credit_amount), source_type: 'Spree::StoreCredit', adjustable: self)
+        adjustments.store_credits.create(
+          label: Spree.t(:store_credit),
+          amount: -(@store_credit_amount),
+          source_type: 'Spree::StoreCredit',
+          adjustable: self
+        )
       end
     end
 
     # recalculate totals and ensure payment is set to new amount
     updater.update unless new_record?
-    if unprocessed_payments.first
-      unprocessed_payments.first.amount = total
-      return unprocessed_payments.first.amount
-    end
+    return unless unprocessed_payments.first
+    unprocessed_payments.first.amount = total
+    unprocessed_payments.first.amount
   end
 
   def consume_users_credit
-    return unless completed? and user.present?
-    credit_used = self.store_credit_amount
+    return unless completed? && user.present?
+    credit_used = store_credit_amount
 
     user.store_credits.each do |store_credit|
       break if credit_used == 0
-      if store_credit.remaining_amount > 0
-        if store_credit.remaining_amount > credit_used
-          store_credit.remaining_amount -= credit_used
-          store_credit.save
-          credit_used = 0
-        else
-          credit_used -= store_credit.remaining_amount
-          store_credit.update_attribute(:remaining_amount, 0)
-        end
+      break unless store_credit.remaining_amount > 0
+      if store_credit.remaining_amount > credit_used
+        store_credit.remaining_amount -= credit_used
+        store_credit.save
+        credit_used = 0
+      else
+        credit_used -= store_credit.remaining_amount
+        store_credit.update_attribute(:remaining_amount, 0)
       end
     end
   end
@@ -111,12 +114,11 @@ Spree::Order.class_eval do
   # ensure that user has sufficient credits to cover adjustments
   #
   def ensure_sufficient_credit
-    if user.store_credits_total < store_credit_amount
-      # user's credit does not cover all adjustments.
-      adjustments.store_credits.destroy_all
-      update!
-      updater.update_payment_state
-      update!
-    end
+    return unless user.store_credits_total < store_credit_amount
+    # user's credit does not cover all adjustments.
+    adjustments.store_credits.destroy_all
+    update!
+    updater.update_payment_state
+    update!
   end
 end

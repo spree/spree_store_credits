@@ -21,7 +21,7 @@ module Spree
     # Ensure an amount which does not exceed the sum of the order's
     # item_total and ship_total
     def compute_amount(calculable)
-      amount = self.calculator.compute(calculable).to_f.abs
+      amount = calculator.compute(calculable).to_f.abs
       [(calculable.item_total + calculable.ship_total), amount].min
     end
 
@@ -38,13 +38,12 @@ module Spree
       end
 
       def ensure_action_has_calculator
-        self.calculator ||= Calculator::FlatPercentItemTotal.new()
+        self.calculator ||= Calculator::FlatPercentItemTotal.new
         self.calculator.preferred_flat_percent = preferred_flat_percent
       end
 
       def give_store_credit(user, amount, order)
-        user.store_credits.create(amount: amount, remaining_amount: amount,
-                                  reason: credit_reason(order.number))
+        user.store_credits.create(amount: amount, remaining_amount: amount, reason: credit_reason(order.number))
         promotion.orders << order
         promotion.save
       end
