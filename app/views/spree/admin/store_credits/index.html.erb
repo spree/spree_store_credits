@@ -1,14 +1,14 @@
-<%= render :partial => 'spree/admin/shared/configuration_menu' %>
+<%= render partial: 'spree/admin/shared/configuration_menu' %>
 
-<h1 class="page-title "> <%= Spree.t("listing_store_credits") %></h1><br>
+<h1 class="page-title"><%= Spree.t(:listing_store_credits) %></h1><br>
 
 <table class="index">
   <thead>
     <tr>
-      <th><%= Spree.t("user") %></th>
-      <th><%= Spree.t("amount") %></th>
-      <th><%= Spree.t("remaining_amount") %></th>
-      <th><%= Spree.t("reason") %></th>
+      <th><%= Spree.t(:user) %></th>
+      <th><%= Spree.t(:amount) %></th>
+      <th><%= Spree.t(:remaining_amount) %></th>
+      <th><%= Spree.t(:reason) %></th>
     </tr>
   </thead>
   <tbody>
@@ -21,11 +21,11 @@
         <td class="actions">
           <% if store_credit.remaining_amount > 0 %>
             <% if store_credit.amount == store_credit.remaining_amount %>
-              <%= link_to_edit store_credit, :no_text => true %> &nbsp;
+              <%= link_to_edit store_credit, no_text: true %> &nbsp;
             <% else %>
               <%= Spree.t(:was_partially_used) %>
             <% end %>
-            <%= link_to_delete store_credit, :no_text => true %>
+            <%= link_to_delete store_credit, no_text: true %>
           <% else %>
             <%= Spree.t(:was_fully_used) %>
           <% end %>

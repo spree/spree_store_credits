@@ -3,5 +3,5 @@
   <%= label_tag field_name, Spree.t(:preferred_flat_percent) %>
   <%= preference_field_tag(field_name,
                         promotion_action.get_preference(:flat_percent),
-                       :type => promotion_action.preferred_flat_percent) %>
+                       type: promotion_action.preferred_flat_percent) %>
 </p>

@@ -1,12 +1,12 @@
 module Spree
   class Promotion::Actions::GiveStoreCreditAsPercentage < PromotionAction
     include Spree::CalculatedAdjustments
-    preference :flat_percent, :decimal, :default => 10
- 
+    preference :flat_percent, :decimal, default: 10
+
     delegate :eligible?, to: :promotion
 
     before_validation :ensure_action_has_calculator
-    
+
     def perform(payload = {})
       order = payload[:order]
       return unless payload[:user]
@@ -26,6 +26,7 @@ module Spree
     end
 
     private
+
       # Tells us if there if the specified promotion is already associated with the line item
       # regardless of whether or not its currently eligible. Useful because generally
       # you would only want a promotion action to apply to order no more than once.
@@ -41,7 +42,6 @@ module Spree
         self.calculator.preferred_flat_percent = preferred_flat_percent
       end
 
-
       def give_store_credit(user, amount, order)
         user.store_credits.create(amount: amount, remaining_amount: amount,
                                   reason: credit_reason(order.number))
@@ -52,6 +52,5 @@ module Spree
       def credit_reason(number)
         "#{Spree.t(:promotion)} #{promotion.name} #{Spree.t(:for_order)} #{number}"
       end
-
   end
 end

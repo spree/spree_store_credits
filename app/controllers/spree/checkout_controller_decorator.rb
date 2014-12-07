@@ -29,6 +29,7 @@ module Spree
     end
 
     private
+
     def remove_payments_attributes_if_total_is_zero
       load_order_with_lock
 

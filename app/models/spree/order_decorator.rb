@@ -4,8 +4,8 @@ Spree::Order.class_eval do
   # the check for user? below is to ensure we don't break the
   # admin app when creating a new order from the admin console
   # In that case, we create an order before assigning a user
-  before_save :process_store_credit, :if => "self.user.present? && @store_credit_amount"
-  after_save :ensure_sufficient_credit, :if => "self.user.present? && !self.completed?"
+  before_save :process_store_credit, if: "self.user.present? && @store_credit_amount"
+  after_save :ensure_sufficient_credit, if: "self.user.present? && !self.completed?"
 
   validates_with StoreCreditMinimumValidator
 
@@ -17,7 +17,7 @@ Spree::Order.class_eval do
     end
   end
   alias_method_chain :process_payments!, :credits
-  
+
   def store_credit_amount
     adjustments.store_credits.sum(:amount).abs.to_f
   end
@@ -71,10 +71,10 @@ Spree::Order.class_eval do
     else
       sca = adjustments.store_credits.first
       if sca
-        sca.update_attributes({:amount => -(@store_credit_amount)})
+        sca.update_attributes({amount: -(@store_credit_amount)})
       else
         # create adjustment off association to prevent reload
-        sca = adjustments.store_credits.create(:label => Spree.t(:store_credit) , :amount => -(@store_credit_amount), source_type: 'Spree::StoreCredit', adjustable: self)
+        sca = adjustments.store_credits.create(label: Spree.t(:store_credit) , amount: -(@store_credit_amount), source_type: 'Spree::StoreCredit', adjustable: self)
       end
     end
 
@@ -82,14 +82,12 @@ Spree::Order.class_eval do
     updater.update unless new_record?
     if unprocessed_payments.first
       unprocessed_payments.first.amount = total
-      return unprocessed_payments.first.amount 
+      return unprocessed_payments.first.amount
     end
   end
 
   def consume_users_credit
-
     return unless completed? and user.present?
-
     credit_used = self.store_credit_amount
 
     user.store_credits.each do |store_credit|
@@ -106,9 +104,10 @@ Spree::Order.class_eval do
       end
     end
   end
+
   # consume users store credit once the order has completed.
-  state_machine.after_transition to: :complete, do: :consume_users_credit 
-  
+  state_machine.after_transition to: :complete, do: :consume_users_credit
+
   # ensure that user has sufficient credits to cover adjustments
   #
   def ensure_sufficient_credit
@@ -120,5 +119,4 @@ Spree::Order.class_eval do
       update!
     end
   end
-
 end
