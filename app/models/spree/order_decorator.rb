@@ -4,8 +4,8 @@ Spree::Order.class_eval do
   # the check for user? below is to ensure we don't break the
   # admin app when creating a new order from the admin console
   # In that case, we create an order before assigning a user
-  before_save :process_store_credit, :if => "self.user.present? && @store_credit_amount"
-  after_save :ensure_sufficient_credit, :if => "self.user.present? && !self.completed?"
+  before_save :process_store_credit, if: "self.user.present? && @store_credit_amount"
+  after_save :ensure_sufficient_credit, if: "self.user.present? && !self.completed?"
 
   validates_with StoreCreditMinimumValidator
 
@@ -19,7 +19,7 @@ Spree::Order.class_eval do
   alias_method_chain :process_payments!, :credits
 
   def store_credit_amount
-    adjustments.store_credits.sum(:amount).abs.to_f
+    @store_credit_amount || adjustments.store_credits.sum(:amount).abs.to_f
   end
 
   # in case of paypal payment, item_total cannot be 0
@@ -36,30 +36,54 @@ Spree::Order.class_eval do
     end
   end
 
+  def ensure_line_items_are_in_stock
+    if insufficient_stock_lines.present?
+      errors.add(:base, "Insufficient: #{Spree.t(:insufficient_stock_lines_present)}") and return false
+    end
+  end
+
   private
 
+  def ensure_line_items_present
+    unless line_items.present?
+      errors.add(:base, "No items: #{Spree.t(:there_are_no_items_for_this_order)}") and return false
+    end
+  end
+
+  def ensure_available_shipping_rates
+    if shipments.empty? || shipments.any? { |shipment| shipment.shipping_rates.blank? }
+      # After this point, order redirects back to 'address' state and asks user to pick a proper address
+      # Therefore, shipments are not necessary at this point.
+      shipments.delete_all
+      errors.add(:base, "Cannot be shipped: #{Spree.t(:items_cannot_be_shipped)}") and return false
+    end
+  end
+
   # credit or update store credit adjustment to correct value if amount specified
-  #
   def process_store_credit
     @store_credit_amount = BigDecimal.new(@store_credit_amount.to_s).round(2)
 
     # store credit can't be greater than order total (not including existing credit), or the user's available credit
     @store_credit_amount = [@store_credit_amount, user.store_credits_total, (total + store_credit_amount.abs)].min
 
-    if @store_credit_amount <= 0
+    if @store_credit_amount <= 0 || @remove_store_credits
       adjustments.store_credits.destroy_all
     else
-      if sca = adjustments.store_credits.first
+      sca = adjustments.store_credits.first
+      if sca
         sca.update_attributes({:amount => -(@store_credit_amount)})
       else
         # create adjustment off association to prevent reload
-        sca = adjustments.store_credits.create(:label => Spree.t(:store_credit) , :amount => -(@store_credit_amount))
+        sca = adjustments.store_credits.create(:label => Spree.t(:store_credit) , :amount => -(@store_credit_amount), source_type: 'Spree::StoreCredit', adjustable: self)
       end
     end
 
-    # recalc totals and ensure payment is set to new amount
-    update_totals
-    pending_payments.first.amount = total if pending_payments.first
+    # recalculate totals and ensure payment is set to new amount
+    updater.update unless new_record?
+    if unprocessed_payments.first
+      unprocessed_payments.first.amount = total
+      return unprocessed_payments.first.amount 
+    end
   end
 
   def consume_users_credit
@@ -81,15 +105,16 @@ Spree::Order.class_eval do
     end
   end
   # consume users store credit once the order has completed.
-  state_machine.after_transition :to => :complete,  :do => :consume_users_credit
-
+  state_machine.after_transition to: :complete, do: :consume_users_credit 
+  
   # ensure that user has sufficient credits to cover adjustments
   #
   def ensure_sufficient_credit
     if user.store_credits_total < store_credit_amount
       # user's credit does not cover all adjustments.
       adjustments.store_credits.destroy_all
-
+      update!
+      updater.update_payment_state
       update!
     end
   end

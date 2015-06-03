@@ -1,11 +1,11 @@
 require 'spec_helper'
 
-describe Spree::Admin::StoreCreditsController do
+RSpec.describe Spree::Admin::StoreCreditsController, :type => :controller do
   stub_authorization!
 
   before do
     user = create(:admin_user)
-    controller.stub(:spree_current_user => user)
+    allow(controller).to receive_messages(:spree_current_user => user)
   end
 
   context '#index' do
@@ -14,11 +14,11 @@ describe Spree::Admin::StoreCreditsController do
 
       it "should display the index page" do
         spree_get :index
-        response.status.should eq(200)
-        response.should render_template(:index)
+        expect(response.status).to eq(200)
+        expect(response).to render_template(:index)
         assigned_credits = assigns(:collection)
         store_credits.each do |c|
-          assigned_credits.should include(c)
+          expect(assigned_credits).to include(c)
         end
       end
     end
@@ -26,9 +26,9 @@ describe Spree::Admin::StoreCreditsController do
     context "without store credits" do
       it "should display an empty" do
         spree_get :index
-        response.status.should eq(200)
-        response.should render_template(:index)
-        assigns(:collection).should be_empty
+        expect(response.status).to eq(200)
+        expect(response).to render_template(:index)
+        expect(assigns(:collection)).to be_empty
       end
     end
   end
@@ -36,8 +36,8 @@ describe Spree::Admin::StoreCreditsController do
   context '#new' do
     it 'should render the correct template' do
       spree_get :new
-      response.status.should eq(200)
-      response.should render_template(:new)
+      expect(response.status).to eq(200)
+      expect(response).to render_template(:new)
     end
   end
 
@@ -47,17 +47,17 @@ describe Spree::Admin::StoreCreditsController do
     let(:amount) { BigDecimal.new(rand()*100, 2).to_f }
 
     it 'should create a store credit for the user when arguments are provided' do
-      lambda {
+      expect {
         spree_post :create, store_credit: { amount: amount, reason: reason, user_id: user.id }
-        response.should redirect_to(spree.admin_store_credits_path)
-      }.should change(Spree::StoreCredit, :count).by(1)
+        expect(response).to redirect_to(spree.admin_store_credits_path)
+      }.to change(Spree::StoreCredit, :count).by(1)
       user.reload
       store_credit = user.store_credits.first
-      store_credit.should_not be_nil
-      store_credit.user.should eq(user)
-      store_credit.reason.should eq(reason)
-      store_credit.amount.should eq(amount)
-      store_credit.remaining_amount.should eq(amount)
+      expect(store_credit).to_not be_nil
+      expect(store_credit.user).to eq(user)
+      expect(store_credit.reason).to eq(reason)
+      expect(store_credit.amount).to eq(amount)
+      expect(store_credit.remaining_amount).to eq(amount)
     end
   end
 
@@ -67,14 +67,14 @@ describe Spree::Admin::StoreCreditsController do
 
     it 'should render the correct template for a new store credit' do
       spree_get :edit, id: new_store_credit
-      response.status.should eq(200)
-      response.should render_template(:edit)
+      expect(response.status).to eq(200)
+      expect(response).to render_template(:edit)
     end
 
     it 'should redirect to spree.admin_store_credits_path for a used store credit' do
       spree_get :edit, id: used_store_credit
-      response.should redirect_to(spree.admin_store_credits_path)
-      flash[:error].should eq("Cannot be edited because it has been used")
+      expect(response).to redirect_to(spree.admin_store_credits_path)
+      expect(flash[:error]).to eq("Cannot be edited because it has been used")
     end
   end
 
@@ -89,9 +89,9 @@ describe Spree::Admin::StoreCreditsController do
                                                                user_id: new_store_credit.user,
                                                                reason: new_reason }
       new_store_credit.reload
-      new_store_credit.reason.should eq(new_reason)
-      flash[:error].should be_nil
-      response.should redirect_to(spree.admin_store_credits_path)
+      expect(new_store_credit.reason).to eq(new_reason)
+      expect(flash[:error]).to be_nil
+      expect(response).to redirect_to(spree.admin_store_credits_path)
     end
 
     it 'should redirect to spree.admin_store_credits_path for a used store credit' do
@@ -101,20 +101,20 @@ describe Spree::Admin::StoreCreditsController do
                                                                 remaining_amount: used_store_credit.remaining_amount,
                                                                 user_id: used_store_credit.user,
                                                                 reason: new_reason }
-      response.should redirect_to(spree.admin_store_credits_path)
-      flash[:error].should eq("Cannot be edited because it has been used")
+      expect(response).to redirect_to(spree.admin_store_credits_path)
+      expect(flash[:error]).to eq("Cannot be edited because it has been used")
       used_store_credit.reload
-      used_store_credit.reason.should eq(old_reason)
+      expect(used_store_credit.reason).to eq(old_reason)
     end
   end
 
   context '#destroy' do
     let!(:store_credit) { create(:store_credit) }
     it 'should destroy the store credit' do
-      lambda {
+      expect {
         spree_delete :destroy, id: store_credit.id
-        response.should redirect_to(spree.admin_store_credits_path)
-      }.should change(Spree::StoreCredit, :count).by(-1)
+        expect(response).to redirect_to(spree.admin_store_credits_path)
+      }.to change(Spree::StoreCredit, :count).by(-1)
     end
   end
 end

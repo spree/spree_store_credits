@@ -5,6 +5,7 @@ en:
     current_store_credit: "Current store credit"
     editing_store_credit: "Editing store credit"
     enter_desired_amount_of_store_credit: "Enter amount, which you want to use"
+    for_order: for order
     listing_store_credits: "Store credits"
     new_store_credit: "New store credit"
     manage_store_credits: "Manage store credits"
@@ -17,6 +18,14 @@ en:
     was_fully_used: "was fully used"
     was_partially_used: "was partially used"
     cannot_edit_used: "Cannot be edited because it has been used"
+    preferred_flat_percent: "Preferred flat percent"
+    promotion_action_types:
+      give_store_credit:
+        description: Gives the user store credit of the amount specified
+        name: Give store credit
+      give_store_credit_as_percentage:
+        description: Gives the user store credit as percentage of the total of his last purchase
+        name: Give store credit as percentage of last purchase
     errors:
       messages:
         store_credit_minimum_order_not_reach: "Order's item total is less than the minimum allowed (%{amount}) to use store credit."
