@@ -4,8 +4,8 @@ Spree::Order.class_eval do
   # the check for user? below is to ensure we don't break the
   # admin app when creating a new order from the admin console
   # In that case, we create an order before assigning a user
-  before_save :process_store_credit, if: :store_credit_processing_required?
-  after_save :ensure_sufficient_credit, if: proc { |order| order.user.present? && !order.completed? }
+  before_save :process_store_credit, if: "self.user.present? && @store_credit_amount"
+  after_save :ensure_sufficient_credit, if: "self.user.present? && !self.completed?"
 
   validates_with StoreCreditMinimumValidator
 
